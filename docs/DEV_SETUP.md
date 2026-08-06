@@ -103,6 +103,38 @@ WSLg's GUI can go unresponsive; `wsl --shutdown` from Windows fixes it.
 
 ---
 
+## CAD — refreshing `hardware/cad/`
+
+The SolidWorks working copy lives **outside the repo**, at
+`C:\Users\lukec\Documents\Solidworks Projects\Endoscope`. `hardware/cad/` is a published copy and
+goes stale when the design moves. To refresh it:
+
+1. Open **`Full assem.SLDASM`** in the working folder.
+2. `File → Pack and Go` — it resolves the reference tree, so live parts never have to be
+   identified by hand. Tick **"Include suppressed components"** if any exist.
+3. Click **`Add File...`** and add **`Layout Assembely.SLDASM`**.
+4. Tick **"Flatten to single folder"**.
+5. **Save to folder** → `hardware\cad`. Not "Save to Zip file". The original is copied, never
+   moved.
+6. Close everything, reopen from `hardware\cad`, and check the FeatureManager tree for
+   unresolved-component flags. `File → Find References` confirms nothing still resolves back to
+   `Documents\`.
+7. Re-export `Full assem.STL` — `File → Save As → STL → Options`, with **"Save all components of
+   an assembly in a single file"** ticked. A stale STL next to fresh sources is worse than none.
+
+⚠️ **Do not run Pack and Go twice into the same folder.** Both assemblies share parts. A second
+run collides with files the first wrote, leaving per-file overwrite decisions — and one wrong
+call leaves the two assemblies pointing at *different copies of the same part*. One operation
+with both files packages the union of their references once, consistently.
+
+The 2026-08-06 port carried 10 of 16 source parts. The 6 left behind were superseded iterations:
+`mg996r` and `Servo holding block` (the design moved to STS3032 serial servos), `Shaft ring`,
+`Spool helic reverse`, `Spool_testing`, and the single `sts3032 Bracket` replaced by the
+male/female pair. The source folder's `STL/` directory is print history and was deliberately not
+copied.
+
+---
+
 ## Generated output
 
 `scenes/` folders are always regenerated on demand — safe to delete at any time. Scene XML is
