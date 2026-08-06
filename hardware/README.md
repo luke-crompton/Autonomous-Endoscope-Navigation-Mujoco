@@ -6,7 +6,7 @@ complete and the next milestone is a physical rig trial.
 
 | Folder | What goes in it |
 |---|---|
-| [`cad/`](cad/) | SolidWorks sources and neutral exports (STEP, STL) for the scope, feeder and mounting |
+| [`cad/`](cad/) | SolidWorks sources for the scope, feeder and mounting, plus [`Full assem.STL`](cad/Full%20assem.STL) — **click it on GitHub for an interactive 3D view of the rig** |
 | [`firmware/`](firmware/) | Arduino / microcontroller code driving the tendon motors and feed rollers |
 | [`bringup/`](bringup/) | Test procedures, measurement scripts, and recorded results |
 
