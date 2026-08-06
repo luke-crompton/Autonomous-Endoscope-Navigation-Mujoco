@@ -4,6 +4,13 @@ CAD for the physical rig. **Empty as of 2026-08-06** — the working model lives
 `C:\Users\lukec\Documents\Solidworks Projects\Endoscope` (36 files, 13.1 MB: 16 parts,
 2 assemblies, plus STEP/STL/3MF exports).
 
+`Full assem.SLDASM` is the current, complete assembly and is the thing to port. The source
+folder also holds **superseded iterations** that should not come across — three spool variants
+(`Spool`, `Spool_testing`, `Spool helic reverse`), three `sts3032` bracket variants, and an
+`STL/` folder that is print history (`SpoolV1 → V2 → V3`, `Pulley_print1`,
+`maleV2 cable holes`, dated 2026-07-24 → 2026-08-05). Don't sort these by hand — Pack and Go
+resolves which parts are live, and STLs should be re-exported fresh rather than copied.
+
 ## Layout
 
 ```
@@ -34,16 +41,26 @@ reference tree, collects every referenced file including ones from outside the f
 them to a destination you choose, and rewrites the references to match. That is the method with
 a guarantee attached; a folder copy merely usually works.
 
-Then, in order:
+### Procedure
 
-1. **Copy, do not move.** Leave the original in `Documents\Solidworks Projects\Endoscope`
-   untouched.
-2. Open **both** assemblies from the new location — `Full assem.SLDASM` and
-   `Layout Assembely.SLDASM`.
-3. Check for dangling references: the FeatureManager tree flags unresolved components, and
-   `File → Find References` lists what each assembly actually points at. Confirm nothing still
-   resolves back to the old folder.
-4. Only once both open clean, decide whether the original is redundant.
+1. Open **`Full assem.SLDASM`** in SolidWorks, from its current location.
+2. `File → Pack and Go`. Tick **"Include suppressed components"** if any exist; leave drawings
+   and simulation results off unless you want them.
+3. **Read the file list it shows you.** This is the authoritative answer to which parts are
+   live — anything absent from it is a superseded iteration. Worth a screenshot before you
+   proceed.
+4. Choose **"Save to folder"** → `…\Mujuco_V3\hardware\cad\native`. Do **not** use "Save to
+   Zip file" unless you want it archived rather than versioned.
+5. **The original is untouched** — Pack and Go copies. Leave
+   `Documents\Solidworks Projects\Endoscope` exactly as it is.
+6. Close everything, then open `hardware\cad\native\Full assem.SLDASM` **from the new
+   location**. Check the FeatureManager tree for unresolved-component flags, and run
+   `File → Find References` to confirm nothing still resolves back to `Documents\`.
+7. With the copy open, re-export fresh: **STEP → `../step/`**, **STL → `../stl/`**. Do not copy
+   the old STLs across; they are earlier iterations and would misrepresent the current design.
+
+`Layout Assembely.SLDASM` is a second, separate assembly. If it is still current, Pack and Go it
+separately in the same way. If it is an early layout sketch, leave it behind.
 
 ## Which copy is the working copy?
 
