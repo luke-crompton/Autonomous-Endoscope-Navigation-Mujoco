@@ -46,10 +46,15 @@ a guarantee attached; a folder copy merely usually works.
 1. Open **`Full assem.SLDASM`** in SolidWorks, from its current location.
 2. `File → Pack and Go`. Tick **"Include suppressed components"** if any exist; leave drawings
    and simulation results off unless you want them.
-3. **Read the file list it shows you.** This is the authoritative answer to which parts are
+3. Click **`Add File...`** and add **`Layout Assembely.SLDASM`**, so both top-level assemblies
+   go into one package. See "Two assemblies, shared parts" below for why this must be one
+   operation and not two.
+4. Tick **"Flatten to single folder"** — the source has `Prints/`, `Step/` and `STL/`
+   subfolders, and there is no reason to recreate that tree inside `native/`.
+5. **Read the file list it shows you.** This is the authoritative answer to which parts are
    live — anything absent from it is a superseded iteration. Worth a screenshot before you
    proceed.
-4. Choose **"Save to folder"** → `…\Mujuco_V3\hardware\cad\native`. Do **not** use "Save to
+6. Choose **"Save to folder"** → `…\Mujuco_V3\hardware\cad\native`. Do **not** use "Save to
    Zip file" unless you want it archived rather than versioned.
 5. **The original is untouched** — Pack and Go copies. Leave
    `Documents\Solidworks Projects\Endoscope` exactly as it is.
@@ -59,8 +64,21 @@ a guarantee attached; a folder copy merely usually works.
 7. With the copy open, re-export fresh: **STEP → `../step/`**, **STL → `../stl/`**. Do not copy
    the old STLs across; they are earlier iterations and would misrepresent the current design.
 
-`Layout Assembely.SLDASM` is a second, separate assembly. If it is still current, Pack and Go it
-separately in the same way. If it is an early layout sketch, leave it behind.
+### Two assemblies, shared parts
+
+`Layout Assembely.SLDASM` and `Full assem.SLDASM` share parts, and it was not certain whether
+the former is a component of the latter or an independent top-level assembly. **The procedure
+above is correct either way** — if it is already a sub-assembly, adding it via `Add File...`
+changes nothing (Pack and Go deduplicates); if it is independent, it gets captured.
+
+To settle the question in five seconds: open `Full assem.SLDASM` → `File → Find References`. If
+`Layout Assembely.SLDASM` is in that list, it is a referenced component.
+
+⚠️ **Do not run Pack and Go twice into the same folder.** The second run collides with files the
+first already wrote, leaving you making overwrite decisions file by file — and one wrong call
+leaves the two assemblies pointing at *different copies of the same part*, which is exactly the
+failure this whole procedure exists to avoid. One operation with both files packages the
+**union** of their references once, with every path rewritten consistently.
 
 ## Which copy is the working copy?
 
