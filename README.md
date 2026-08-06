@@ -41,6 +41,11 @@ anywhere in the observation.
 a physical rig trial. Current plan and open questions:
 [docs/CURRENT_PLAN.md](docs/CURRENT_PLAN.md).
 
+[![The tendon drive rig](hardware/cad/Isometricview.png)](hardware/cad/Full%20assem.STL)
+
+*The tendon drive rig — four cables to two antagonistic pairs, driven by serial bus servos, with
+a cantilever load cell on the shaft axis. [Open it in interactive 3D](hardware/cad/Full%20assem.STL).*
+
 | Result | Value | Evidence |
 |---|---|---|
 | **v8_p1** (live line — physical shaft, 25 Hz, hardware-matching observation) | ~97% mean progress @ 4.52M steps | ⚠️ *training* statistic from sampled rollouts — **no evaluation run yet** |

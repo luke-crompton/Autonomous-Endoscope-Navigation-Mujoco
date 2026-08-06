@@ -30,6 +30,9 @@ build/
 *.log
 *.pid
 
+# SolidWorks lock files — created while a document is open, never part of the model
+~$*
+
 # IDE
 .idea/
 .vscode/

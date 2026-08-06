@@ -1,27 +1,42 @@
 # hardware/cad/
 
-The physical rig: tendon drive, spool, shaft clamp and cantilever force mount. Roughly
+The physical rig: tendon drive, spools, shaft clamp and cantilever force mount. Roughly
 180 × 130 × 110 mm.
 
 **[▶ View the assembly in 3D](Full%20assem.STL)** — GitHub renders it interactively; rotate and
 zoom in the browser, no software needed.
 
-> 🖼️ **TODO — a couple of renders go here** (the assembled rig, and a close-up of the drive end).
-> `Ctrl+Shift+S` in SolidWorks saves the viewport as a PNG; drop them in this folder and link
-> them above.
+![Isometric view of the rig](Isometricview.png)
+
+## Cable routing
+
+Each tendon leaves its spool, turns over a pulley, and runs forward into the shaft clamp on the
+scope axis. **The green lines are the drawn cable paths** — construction geometry, not parts.
+
+| | |
+|---|---|
+| ![Side profile](SideProfile.png) | ![Top view](TopVIEW.png) |
+| **Side** — cables leave the pulleys and run horizontally into the clamp | **Top** — the pair turns through 90° over the pulleys and into the shaft channel |
+
+## Shaft clamp
+
+The clamp at the scope end is designed for a **9–10 mm OD shaft** carrying **four antagonistic
+tendon cables** — the same arrangement the simulated scope uses, so the drive geometry here and
+the tendon model in `navigation/` describe the same mechanism.
 
 ## Bought-in components
 
-Two parts in this folder are **off-the-shelf, not my design.** They are included because the
-surrounding parts were designed around them — their mounting patterns, envelopes and load paths
-drive the geometry of everything they touch:
+Three parts here are **off-the-shelf, not my design.** They are included because the surrounding
+parts were designed around them — their mounting patterns, envelopes and load paths set the
+geometry of everything they touch:
 
-| Part | What it is | What was designed around it |
+| Part | What it is | Designed around it |
 |---|---|---|
-| `sts3032.SLDPRT` | STS3032 serial bus servo | `sts3032 Bracket male` / `Bracket Female` — the mounting pair that carries it |
-| `Load cell block.SLDPRT` | cantilever force bar (load cell) | `Cantilever bracket` — the mount that fixes it and sets the measuring axis |
+| `sts3032.SLDPRT` | STS3032 serial bus servo | `sts3032 Bracket male` / `Bracket Female`, the mounting pair that carries it |
+| `Load cell block.SLDPRT` | cantilever force bar (load cell) | `Cantilever bracket`, which fixes it and sets the measuring axis |
+| `bearing wheel.SLDPRT` | bearing | the pulley and spool assemblies that run on it |
 
-Everything else here is my own: the spool, pulley, bearing wheel, shaft clamp and clamp top.
+Everything else is my own: the spool, pulley, shaft clamp and clamp top.
 
 ## Files
 
