@@ -51,10 +51,15 @@ README.md and docs/ITERATION_HISTORY.md instead.
   mirror at `~/mujoco_v3/`.
 - When rsync'ing to the WSL2 mirror, think before using `--delete`: the mirror can hold
   the only surviving copy of a checkpoint Sample Factory has already rotated off the rig.
-- **This project is not under version control.** There is no git history to recover from,
-  so any delete or overwrite is permanent. Prefer moving superseded files into
-  `docs/archive/` over deleting them, and confirm before overwriting anything you have
-  not read.
+- **This project is under version control as of 2026-08-06** (git, branch `main`, pushed to
+  the private GitHub repo `luke-crompton/Autonomous-Endoscope-Navigation-Mujoco`). Older docs
+  saying otherwise are stale. Two things git does *not* cover, so the old caution still
+  applies to them: anything matched by `.gitignore` — **trained checkpoints (`*.pth`),
+  `scenes/`, `.summary/` TensorBoard events, perception datasets** — has no history and no
+  remote copy, and deleting it is permanent. Checkpoints cannot go in git at all
+  (`da3small_finetune_head.pth` is 131 MB, over GitHub's 100 MB hard limit) — publish those
+  as GitHub Release assets. Prefer moving superseded files into `docs/archive/` over
+  deleting them, and confirm before overwriting anything you have not read.
 
 ## Global rules
 
