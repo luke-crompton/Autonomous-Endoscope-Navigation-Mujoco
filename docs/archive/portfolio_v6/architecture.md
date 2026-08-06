@@ -1,8 +1,12 @@
-> ⚠️ **Harvested 2026-08-06 from the v6_dr portfolio snapshot (`colonoscope-rl`, last touched
-> 2026-06-30). NOT yet refreshed for v8_p1.** It describes the kinematic-base v6 line — no
-> physical flexible shaft, no roller/capstan feeder, and the pre-v7 observation design. Anything
-> here is superseded by [`../CURRENT_PLAN.md`](../CURRENT_PLAN.md) and
-> [`../ITERATION_HISTORY.md`](../ITERATION_HISTORY.md), which win in any disagreement.
+> ⚠️ **SUPERSEDED — archived 2026-08-06. Do not act on anything in this file.**
+> Harvested from the v6_dr portfolio snapshot (`colonoscope-rl`, last touched 2026-06-30) and
+> replaced by [`../../architecture.md`](../../architecture.md), which folded in what was still
+> true. It describes the kinematic-base v6 line — no physical flexible shaft, no roller/capstan
+> feeder, and the pre-v7 observation design. Known to be wrong for the current system on at
+> least: depth resolution and aspect, state vector width, PD gains, base advance, and the claim
+> that the depth is metric. Kept only as a record of how the system was documented in June 2026.
+> [`../../CURRENT_PLAN.md`](../../CURRENT_PLAN.md) and
+> [`../../ITERATION_HISTORY.md`](../../ITERATION_HISTORY.md) win in any disagreement.
 
 # System Architecture
 
