@@ -58,8 +58,10 @@ v8_p1 has to physically push a flexible shaft. The completion metric also change
 
 | If you want to know… | Read |
 |---|---|
-| How the whole loop fits together | [docs/CONTROL_LOOP_REPORT_2026-08-05.md](docs/CONTROL_LOOP_REPORT_2026-08-05.md) — every tensor, every constant, traceable to a line of code |
+| How the whole system fits together | [docs/architecture.md](docs/architecture.md) — the three pipelines, the control loop, the network, the sim-to-real bridge |
+| Every constant, traceable to a line of code | [docs/CONTROL_LOOP_REPORT_2026-08-05.md](docs/CONTROL_LOOP_REPORT_2026-08-05.md) |
 | Why it is built this way, and what failed first | [docs/ITERATION_HISTORY.md](docs/ITERATION_HISTORY.md) — v1 → v8_p1, including the dead ends |
+| The physical rig and what has to be measured | [hardware/README.md](hardware/README.md) |
 | What happens next | [docs/CURRENT_PLAN.md](docs/CURRENT_PLAN.md) |
 | Which RL version is which | [navigation/README.md](navigation/README.md) |
 | How to run any of it | [docs/DEV_SETUP.md](docs/DEV_SETUP.md) |
@@ -74,6 +76,7 @@ v8_p1 has to physically push a flexible shaft. The completion metric also change
 | `navigation/` | The RL system — environment, training, evaluation. Three lines: `v8_p1/` (**live**), `v7_shaft/` (superseded), `v6_dr/` (frozen milestone). See [navigation/README.md](navigation/README.md). |
 | `perception/` | Monocular depth. `rd_v2/` is the DA3-SMALL fine-tune pipeline and error-map generator; `realtime/` is the live deployment runtime and camera tooling. |
 | `simulation/` | Reference videoscope tip model. The navigation bundles carry their own copies by design. |
+| `hardware/` | The physical rig — CAD, firmware, and bring-up measurements. See [hardware/README.md](hardware/README.md). |
 | `docs/` | Documentation, iteration history, and archived training runs. |
 
 Trained checkpoints are **not** in this repository — they exceed GitHub's file size limit and
