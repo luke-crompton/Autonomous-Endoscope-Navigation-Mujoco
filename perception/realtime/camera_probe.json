@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-08-03 16:22:53",
+  "camera": {
+    "index": 1,
+    "backend": "dshow",
+    "delivered_w": 1280,
+    "delivered_h": 720,
+    "aspect": 1.7778,
+    "reported_fps": 0.0,
+    "fourcc": "MJPG"
+  },
+  "capture": {
+    "frames": 91,
+    "dropped_reads": 0,
+    "sustained_fps": 30.08,
+    "read_median_ms": 32.342,
+    "read_p95_ms": 47.202,
+    "read_max_ms": 52.212
+  },
+  "sample_frame": "C:\\Users\\lukec\\PycharmProjects\\Mujuco_V3\\perception\\realtime\\sample_frame.png"
+}

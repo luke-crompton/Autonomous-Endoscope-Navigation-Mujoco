@@ -1,0 +1,41 @@
+# Model checkpoints — too large for git (da3small_finetune_head.pth alone is 131 MB,
+# over GitHub's 100 MB hard limit). Distribute via GitHub Releases instead.
+*.pth
+*.pt
+
+# Generated scene XML. Never cached across runs — always regenerable, safe to delete.
+scenes/
+
+# TensorBoard event files. Large, binary, undiffable; git stores each one whole.
+# config.json and sf_log.txt under runs_sf/ stay tracked — those are the useful record.
+.summary/
+
+# Datasets (regenerable from the perception scripts)
+perception/dataset_finetune/
+perception/dataset_eval/
+perception/predictions*/
+perception/realtime/preview_captures/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+
+# Logs and PID files
+*.log
+*.pid
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db

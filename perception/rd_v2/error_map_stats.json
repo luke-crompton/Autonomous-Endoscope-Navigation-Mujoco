@@ -1,0 +1,21 @@
+{
+  "n_frames_used": 500,
+  "n_frames_skipped": 0,
+  "error_map_shape_full": [
+    180,
+    320
+  ],
+  "error_map_shape_rl": [
+    64,
+    64
+  ],
+  "noise_floor": 0.02,
+  "global_mean_relative_error": 0.12708978639534352,
+  "percentiles": {
+    "p10": 0.10135095939040184,
+    "p25": 0.11183401569724083,
+    "p50": 0.12240186706185341,
+    "p75": 0.13716645166277885,
+    "p90": 0.15861331522464753
+  }
+}

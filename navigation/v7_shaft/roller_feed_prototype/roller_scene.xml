@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<mujoco model="roller_feed_prototype">
+  <compiler angle="radian" autolimits="true"/>
+  <option gravity="0 0 0" timestep="0.0005" integrator="implicitfast">
+    <flag contact="enable"/>
+  </option>
+  <default>
+    <geom condim="3" margin="0.0002"/>
+  </default>
+
+  <asset>
+    <material name="shaft_mat" rgba="0.16 0.18 0.20 1"/>
+    <material name="roller_mat" rgba="0.75 0.25 0.20 1"/>
+    <material name="obstacle_mat" rgba="0.3 0.3 0.3 0.5"/>
+  </asset>
+
+  <worldbody>
+    <body name="roller_0" pos="0.012300 0.000000 0.000000">
+      <joint name="roller_spin_0" type="hinge" axis="0.000000 0.000000 1.000000" damping="0.02" armature="0.0005"/>
+      <inertial pos="0 0 0" mass="0.02" diaginertia="1e-6 1e-6 1e-6"/>
+      <geom name="roller_0_geom" type="cylinder" size="0.008000 0.006000" zaxis="0.000000 0.000000 1.000000" friction="1.2 0.02 0.01" material="roller_mat"/>
+    </body>
+    <body name="roller_1" pos="0.000000 0.000000 0.012300">
+      <joint name="roller_spin_1" type="hinge" axis="-1.000000 0.000000 0.000000" damping="0.02" armature="0.0005"/>
+      <inertial pos="0 0 0" mass="0.02" diaginertia="1e-6 1e-6 1e-6"/>
+      <geom name="roller_1_geom" type="cylinder" size="0.008000 0.006000" zaxis="-1.000000 0.000000 0.000000" friction="1.2 0.02 0.01" material="roller_mat"/>
+    </body>
+    <body name="roller_2" pos="-0.012300 0.000000 0.000000">
+      <joint name="roller_spin_2" type="hinge" axis="-0.000000 0.000000 -1.000000" damping="0.02" armature="0.0005"/>
+      <inertial pos="0 0 0" mass="0.02" diaginertia="1e-6 1e-6 1e-6"/>
+      <geom name="roller_2_geom" type="cylinder" size="0.008000 0.006000" zaxis="-0.000000 0.000000 -1.000000" friction="1.2 0.02 0.01" material="roller_mat"/>
+    </body>
+    <body name="roller_3" pos="-0.000000 0.000000 -0.012300">
+      <joint name="roller_spin_3" type="hinge" axis="1.000000 0.000000 -0.000000" damping="0.02" armature="0.0005"/>
+      <inertial pos="0 0 0" mass="0.02" diaginertia="1e-6 1e-6 1e-6"/>
+      <geom name="roller_3_geom" type="cylinder" size="0.008000 0.006000" zaxis="1.000000 0.000000 -0.000000" friction="1.2 0.02 0.01" material="roller_mat"/>
+    </body>
+
+    <body name="shaft_link_0" pos="0 -0.100000 0">
+      <joint name="shaft_root_free" type="free"/>
+      <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+      <geom name="shaft_link_0_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+        <body name="shaft_link_1" pos="0 0.010000 0">
+          <joint name="shaft_joint_1" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+          <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+          <geom name="shaft_link_1_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+          <body name="shaft_link_2" pos="0 0.010000 0">
+            <joint name="shaft_joint_2" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+            <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+            <geom name="shaft_link_2_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+            <body name="shaft_link_3" pos="0 0.010000 0">
+              <joint name="shaft_joint_3" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+              <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+              <geom name="shaft_link_3_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+              <body name="shaft_link_4" pos="0 0.010000 0">
+                <joint name="shaft_joint_4" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                <geom name="shaft_link_4_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                <body name="shaft_link_5" pos="0 0.010000 0">
+                  <joint name="shaft_joint_5" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                  <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                  <geom name="shaft_link_5_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                  <body name="shaft_link_6" pos="0 0.010000 0">
+                    <joint name="shaft_joint_6" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                    <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                    <geom name="shaft_link_6_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                    <body name="shaft_link_7" pos="0 0.010000 0">
+                      <joint name="shaft_joint_7" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                      <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                      <geom name="shaft_link_7_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                      <body name="shaft_link_8" pos="0 0.010000 0">
+                        <joint name="shaft_joint_8" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                        <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                        <geom name="shaft_link_8_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                        <body name="shaft_link_9" pos="0 0.010000 0">
+                          <joint name="shaft_joint_9" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                          <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                          <geom name="shaft_link_9_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                          <body name="shaft_link_10" pos="0 0.010000 0">
+                            <joint name="shaft_joint_10" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                            <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                            <geom name="shaft_link_10_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                            <body name="shaft_link_11" pos="0 0.010000 0">
+                              <joint name="shaft_joint_11" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                              <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                              <geom name="shaft_link_11_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                              <body name="shaft_link_12" pos="0 0.010000 0">
+                                <joint name="shaft_joint_12" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                <geom name="shaft_link_12_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                <body name="shaft_link_13" pos="0 0.010000 0">
+                                  <joint name="shaft_joint_13" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                  <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                  <geom name="shaft_link_13_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                  <body name="shaft_link_14" pos="0 0.010000 0">
+                                    <joint name="shaft_joint_14" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                    <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                    <geom name="shaft_link_14_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                    <body name="shaft_link_15" pos="0 0.010000 0">
+                                      <joint name="shaft_joint_15" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                      <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                      <geom name="shaft_link_15_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                      <body name="shaft_link_16" pos="0 0.010000 0">
+                                        <joint name="shaft_joint_16" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                        <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                        <geom name="shaft_link_16_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                        <body name="shaft_link_17" pos="0 0.010000 0">
+                                          <joint name="shaft_joint_17" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                          <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                          <geom name="shaft_link_17_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                          <body name="shaft_link_18" pos="0 0.010000 0">
+                                            <joint name="shaft_joint_18" type="hinge" axis="0 0 1" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                            <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                            <geom name="shaft_link_18_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                            <body name="shaft_link_19" pos="0 0.010000 0">
+                                              <joint name="shaft_joint_19" type="hinge" axis="1 0 0" range="-0.349000 0.349000" stiffness="2.0" damping="0.3"/>
+                                              <inertial pos="0 0.005000 0" mass="0.005000" diaginertia="1e-6 1e-6 1e-6"/>
+                                              <geom name="shaft_link_19_geom" type="capsule" fromto="0 0 0 0 0.010000 0" size="0.004500" material="shaft_mat" friction="0.08 0.005 0.001"/>
+                                            </body>
+                                          </body>
+                                        </body>
+                                      </body>
+                                    </body>
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="shaft_link_0" body2="shaft_link_1"/>
+    <exclude body1="shaft_link_1" body2="shaft_link_2"/>
+    <exclude body1="shaft_link_2" body2="shaft_link_3"/>
+    <exclude body1="shaft_link_3" body2="shaft_link_4"/>
+    <exclude body1="shaft_link_4" body2="shaft_link_5"/>
+    <exclude body1="shaft_link_5" body2="shaft_link_6"/>
+    <exclude body1="shaft_link_6" body2="shaft_link_7"/>
+    <exclude body1="shaft_link_7" body2="shaft_link_8"/>
+    <exclude body1="shaft_link_8" body2="shaft_link_9"/>
+    <exclude body1="shaft_link_9" body2="shaft_link_10"/>
+    <exclude body1="shaft_link_10" body2="shaft_link_11"/>
+    <exclude body1="shaft_link_11" body2="shaft_link_12"/>
+    <exclude body1="shaft_link_12" body2="shaft_link_13"/>
+    <exclude body1="shaft_link_13" body2="shaft_link_14"/>
+    <exclude body1="shaft_link_14" body2="shaft_link_15"/>
+    <exclude body1="shaft_link_15" body2="shaft_link_16"/>
+    <exclude body1="shaft_link_16" body2="shaft_link_17"/>
+    <exclude body1="shaft_link_17" body2="shaft_link_18"/>
+    <exclude body1="shaft_link_18" body2="shaft_link_19"/>
+    <exclude body1="roller_0" body2="roller_1"/>
+    <exclude body1="roller_0" body2="roller_2"/>
+    <exclude body1="roller_0" body2="roller_3"/>
+    <exclude body1="roller_1" body2="roller_2"/>
+    <exclude body1="roller_1" body2="roller_3"/>
+    <exclude body1="roller_2" body2="roller_3"/>
+  </contact>
+
+  <actuator>
+    <velocity name="roller_act_0" joint="roller_spin_0" kv="0.05" forcelimited="true" forcerange="-1.0 1.0"/>
+    <velocity name="roller_act_1" joint="roller_spin_1" kv="0.05" forcelimited="true" forcerange="-1.0 1.0"/>
+    <velocity name="roller_act_2" joint="roller_spin_2" kv="0.05" forcelimited="true" forcerange="-1.0 1.0"/>
+    <velocity name="roller_act_3" joint="roller_spin_3" kv="0.05" forcelimited="true" forcerange="-1.0 1.0"/>
+  </actuator>
+</mujoco>

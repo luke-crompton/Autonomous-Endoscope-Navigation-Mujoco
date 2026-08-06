@@ -1,0 +1,57 @@
+[2026-06-24 18:48:22,489][1450902] Using GPUs [0] for process 0 (actually maps to GPUs [0])
+[2026-06-24 18:48:22,489][1450902] Set environment var CUDA_VISIBLE_DEVICES to '0' (GPU indices [0]) for inference process 0
+[2026-06-24 18:48:22,506][1450902] Num visible devices: 1
+[2026-06-24 18:48:22,580][1450903] Worker 0 uses CPU cores [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
+[2026-06-24 18:48:22,595][1450896] Using GPUs [0] for process 0 (actually maps to GPUs [0])
+[2026-06-24 18:48:22,595][1450896] Set environment var CUDA_VISIBLE_DEVICES to '0' (GPU indices [0]) for learning process 0
+[2026-06-24 18:48:22,611][1450896] Num visible devices: 1
+[2026-06-24 18:48:22,617][1450896] WARNING! It is generally recommended to enable Fixed KL loss (https://arxiv.org/pdf/1707.06347.pdf) for continuous action tasks to avoid potential numerical issues. I.e. set --kl_loss_coeff=0.1
+[2026-06-24 18:48:22,618][1450896] Starting seed is not provided
+[2026-06-24 18:48:22,618][1450896] Using GPUs [0] for process 0 (actually maps to GPUs [0])
+[2026-06-24 18:48:22,618][1450896] Initializing actor-critic model on device cuda:0
+[2026-06-24 18:48:22,618][1450896] RunningMeanStd input shape: (1,)
+[2026-06-24 18:48:22,647][1450896] Created Actor Critic model with architecture:
+[2026-06-24 18:48:22,647][1450896] ActorCriticSharedWeights(
+  (obs_normalizer): ObservationNormalizer()
+  (returns_normalizer): RecursiveScriptModule(original_name=RunningMeanStdInPlace)
+  (encoder): ScopeColonEncoder(
+    (depth_cnn): _NatureCNN(
+      (net): Sequential(
+        (0): Sequential(
+          (0): Conv2d(1, 32, kernel_size=(8, 8), stride=(4, 4))
+          (1): ReLU()
+          (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2))
+          (3): ReLU()
+          (4): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1))
+          (5): ReLU()
+          (6): Flatten(start_dim=1, end_dim=-1)
+        )
+        (1): Linear(in_features=256, out_features=512, bias=True)
+        (2): ReLU()
+      )
+    )
+    (state_mlp): Sequential(
+      (0): Linear(in_features=10, out_features=64, bias=True)
+      (1): ReLU()
+      (2): Linear(in_features=64, out_features=64, bias=True)
+      (3): ReLU()
+    )
+  )
+  (core): ModelCoreIdentity()
+  (decoder): MlpDecoder(
+    (mlp): Identity()
+  )
+  (critic_linear): Linear(in_features=576, out_features=1, bias=True)
+  (action_parameterization): ActionParameterizationDefault(
+    (distribution_linear): Linear(in_features=576, out_features=6, bias=True)
+  )
+)
+[2026-06-24 18:48:22,869][1450896] Using optimizer <class 'torch.optim.adam.Adam'>
+[2026-06-24 18:48:23,744][1450896] No checkpoints found
+[2026-06-24 18:48:23,744][1450896] Did not load from checkpoint, starting from scratch!
+[2026-06-24 18:48:23,745][1450896] Initialized policy 0 weights for model version 0
+[2026-06-24 18:48:23,748][1450896] LearnerWorker_p0 finished initialization!
+[2026-06-24 18:48:23,748][1450896] Using GPUs [0] for process 0 (actually maps to GPUs [0])
+[2026-06-24 18:48:24,068][1450902] RunningMeanStd input shape: (1,)
+[2026-06-24 18:48:30,233][1450903] Decorrelating experience for 0 frames...
+[2026-06-24 18:50:09,703][1450896] Saving /home/andrew/Mujoco_01_06_26/transfer/Stage4/v3_sample_factory/runs_sf/codex_check_smoke/checkpoint_p0/checkpoint_000000000_0.pth...
