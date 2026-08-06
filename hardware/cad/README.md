@@ -25,6 +25,27 @@ Keep **STEP and STL committed even when the native files are**. They are the cop
 readable without a SolidWorks licence, and STL is what makes the geometry visible directly in
 the browser on GitHub.
 
+## Exporting STL, and the GitHub 3D viewer
+
+GitHub renders committed `.stl` files in an **interactive 3D viewer** — rotate, zoom, wireframe,
+and a revision-comparison mode. Nothing needs to be configured or installed: commit the file and
+click it in the repo file browser. Two limits:
+
+- **It does not render inline in a README.** The viewer only appears on the file's own page. A
+  README needs a rendered PNG for anything that shows on the page itself.
+- **Very large STLs may not render.** Export at a sensible resolution rather than maximum.
+
+From SolidWorks: `File → Save As → STL (*.stl) → Options`. The decision that matters is
+**"Save all components of an assembly in a single file"**:
+
+| Setting | Produces | Use for |
+|---|---|---|
+| ticked | one STL of the whole assembly | the GitHub viewer — one file, one click, the assembled rig |
+| unticked | one STL per part, each in its own frame | printing |
+
+Do both. Resolution **Fine** is normally enough; drop to a coarser custom deviation if the
+combined file is heavy.
+
 ## Moving the SolidWorks files without breaking the assemblies
 
 The concern is real but narrower than it looks. SolidWorks resolves external references by
