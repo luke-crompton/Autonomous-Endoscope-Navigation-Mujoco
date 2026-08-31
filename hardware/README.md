@@ -26,7 +26,7 @@ not fitted in this shot.)*
 *Left: the tip-to-shaft internals — the full shaft assembly end to end with the flexible spring
 and braided housing removed. Right: the shaft cross-section — four tendon Bowden tubes at
 N / E / S / W, the camera cable down the centre, and the two flex-sensor signal wires in the
-diagonal gaps, all inside a tension spring and a braided sleeve.*
+diagonal gaps, all inside a tension spring and a braided sleeve. The tension spring provides a cylindrical shape and compression ridgitiy, and the braided sleeve provides the torsional ridgity to transmit rotation from the base to the tip. From testing the shaft internals provide enough bending resistance to stop buckling whilst still being flexible enough to navigate tight bends*
 
 | Folder | What goes in it |
 |---|---|
