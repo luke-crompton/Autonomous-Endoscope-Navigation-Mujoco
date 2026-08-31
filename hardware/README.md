@@ -15,9 +15,10 @@ complete and the next milestone is a physical rig trial.
 tendon cables and camera wiring (right), and the orange [flex tip-contact sensor](electronics/flex_tip_sensor/)
 that bonds over it (left).*
 
-https://github.com/user-attachments/assets/fa86e3fe-f233-49f4-af9e-a7221e09e4eb
+<img width="426" height="240" alt="tip to shaft internals " src="https://github.com/user-attachments/assets/7203eafa-3f23-491c-967b-d8927613296f" />
 
-*▶ Video to add here — the tip-to-shaft internals: the full assembly end to end with the flexible
+
+The tip-to-shaft internals: the full shaft assembly end to end with the flexible
 spring and braided housing removed.*
 
 | Folder | What goes in it |
