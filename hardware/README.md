@@ -4,12 +4,21 @@ The real scope, the mechanism that drives it, and the measurements that decide w
 trained policy transfers. This is where the project is now: simulation work for this phase is
 complete and the next milestone is a physical rig trial.
 
+> **⚠️ Work in progress.** The rig is still being built and nothing has been trialled yet.
+> Insertion is **hand-fed for now** — the automatic feed drive is not built. The first
+> policy-driven tests will run without it: the shaft is pushed in by hand so the **steering
+> response** can be checked on its own before the feed mechanism is added.
+
 ![The scope tip and its internals](electronics/flex_tip_sensor/tip_build_photo.jpg)
 
 *The bending tip during assembly: an articulating disk stack (top), a tip section with its four
 tendon cables and camera wiring (right), and the orange [flex tip-contact sensor](electronics/flex_tip_sensor/)
-that bonds over it (left). An [8 s clip of the tip-to-shaft internals](../docs/media/tip_to_shaft_internals.mp4)
-shows the same assembly end to end with the spring and braided housing removed.*
+that bonds over it (left).*
+
+<!-- Luke: drop the tip-to-shaft internals clip in here — drag docs/media/tip_to_shaft_internals.mp4
+     onto the line below in the GitHub web editor, then delete this comment and the italic line. -->
+*▶ Video to add here — the tip-to-shaft internals: the full assembly end to end with the flexible
+spring and braided housing removed.*
 
 | Folder | What goes in it |
 |---|---|
@@ -36,7 +45,7 @@ Nothing here describes measured hardware behaviour.
 | **Rate** | one decision per 40 ms (25 Hz) |
 | **Camera** | 16:9 frame; the policy was trained on 100° horizontal rectilinear |
 | **Tendons** | 4 cables in 2 antagonistic pairs, **pull-only**, position-commanded to an absolute pull in mm |
-| **Feed** | signed insertion rate, ±30 mm/s at full command |
+| **Feed** | signed insertion rate, ±30 mm/s at full command — **hand-fed for now**, so `a[2]` is an operator advance/hold/withdraw cue, not yet a driven axis |
 | **Contact** | a binary tip-contact flag — the only exogenous signal in the state vector besides the image. Hardware: [`electronics/flex_tip_sensor/`](electronics/flex_tip_sensor/), fabricated but not yet calibrated |
 | **Software state** | the PD command shaper and previous-action echo must be **reproduced in software**, not measured — five of the six state floats are internal, not sensors |
 
@@ -51,6 +60,10 @@ measurements that have to happen before the first policy-driven run, and
 The **tip-contact sensor now exists in hardware** — a polyimide flex electrode with a
 piezoresistive film, [`electronics/flex_tip_sensor/`](electronics/flex_tip_sensor/) — but it is
 uncalibrated and not yet wired in, so it does not change the status above.
+
+<img src="electronics/flex_tip_sensor/kicad_layout.png" alt="flex tip-contact sensor PCB layout" width="130">
+
+*Flex sensor PCB — comb head, 1.5 mm pigtail, solder pads. [Details](electronics/flex_tip_sensor/).*
 
 Three sim-to-real gaps are known and quantified:
 
