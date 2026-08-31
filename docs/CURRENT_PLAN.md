@@ -42,7 +42,7 @@ bars on each cable, DA3 depth model running live at ~31 fps. Insertion is **hand
 | `cmd_x_n`, `cmd_y_n` | your own PD filter — **not a sensor** | software, must be reimplemented exactly |
 | ~~`ten_x_n`, `ten_z_n`~~ | ~~cable encoder differential~~ | ❌ **REMOVED from the obs 2026-08-04** — §5 Change E |
 | `last_action[0..2]` | previous action | software |
-| `tip_contact` | tip contact sensing | ⚠️ available, narrower than sim — see below |
+| `tip_contact` | Binary tip contact sensing | available from flex pcb |
 | `a[0]`, `a[1]` → cable pull | position-controlled motors | ✅ native match |
 | `a[2]` → insertion | **hand-fed** — becomes an operator cue | see §3 |
 
