@@ -76,7 +76,6 @@ v8_p1 has to physically push a flexible shaft. The completion metric also change
 | If you want to know… | Read |
 |---|---|
 | How the whole system fits together | [docs/architecture.md](docs/architecture.md) — the three pipelines, the control loop, the network, the sim-to-real bridge |
-| Every constant, traceable to a line of code | [docs/CONTROL_LOOP_REPORT_2026-08-05.md](docs/CONTROL_LOOP_REPORT_2026-08-05.md) |
 | Why it is built this way, and what failed first | [docs/ITERATION_HISTORY.md](docs/ITERATION_HISTORY.md) — v1 → v8_p1, including the dead ends |
 | The physical rig and what has to be measured | [hardware/README.md](hardware/README.md) — and [the assembly in interactive 3D](hardware/cad/Full%20assem.STL) |
 | What happens next | [docs/CURRENT_PLAN.md](docs/CURRENT_PLAN.md) |

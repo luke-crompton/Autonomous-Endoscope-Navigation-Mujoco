@@ -33,16 +33,44 @@ separate** — they genuinely differ, spanning 12 vs 13 joints.
 
 ### 2. Camera roll offset
 
-In sim the tip camera is body-fixed and never rotates, so the mapping from image direction to
-cable is a constant. On the real scope that constant is unknown and unmeasured.
+In sim the tip camera is welded to the tip body and the tendon holes are in that same body
+frame, so "where the lumen is in the image" and "which cable steers toward it" are locked
+together — the scope can twist freely down a bend and the policy neither sees nor cares. Only a
+single **fixed roll offset** between the real camera and the real cable axes can matter, and it
+is unmeasured.
 
-Procedure: pull each of the four cables in turn and watch which way the image moves.
+**The convention sim was trained under** (derived from the camera XML, *not* yet verified by the
+headless `a[0] = +1` check):
 
-- If the offset is a **multiple of 90°**, it is correctable in the action mapping with a signed
-  swap of `a[0]` / `a[1]`.
-- If it is anything else, **it cannot be fixed in the action** — the policy's steering frame and
-  the camera frame disagree by an angle no permutation resolves. That is a mechanical fix or a
-  perception-side image rotation.
+| Image direction | Body axis | Cable pair | Span |
+|---|---|---|---|
+| right | −X | `px` / `nx` | 12 joints, 120°, `MAX_PULL_X` |
+| up | −Z | `pz` / `nz` | 13 joints, 130°, `MAX_PULL_Z` |
+
+So `a[0] > 0` steers toward image **left**, `a[1] > 0` toward image **down**. The wide image
+axis (100° over 96 columns) is the X pair; the narrow axis (67.7° over 54 rows) is the Z pair.
+
+**The measurement.** Scope in free space, pull each of the four cables in turn to a clearly
+visible bend, and record which way the image content translates. Four pulls give the full
+image↔cable map — offset angle and all signs — with no calibration target.
+
+**Acting on the result:**
+
+- **Offset is a multiple of 90°** → fix in software with a signed swap of `a[0]` / `a[1]`
+  (relabelling the cables and rotating the command are the same operation here). **180° is
+  free.** 90° / 270° costs the 12-vs-13-joint asymmetry — `a[0]` would then drive the 130° axis
+  where it trained on 120°, ~8% in pull and ~10° in range.
+- **Offset is not a multiple of 90°** → **it cannot be corrected in the action.** The obs is
+  anisotropic (1.04°/column vs 1.25°/row), so a rolled real frame is not a rotation of any frame
+  sim can render; the CNN is not rotation-equivariant; the bend map itself is anisotropic (a
+  rotated full-scale command can exceed the elliptical reachable envelope); and the GRU state
+  goes out of distribution. Fix the mount, or rotate the frame **before** the 54×96 downscale —
+  which folds into the fisheye rectification LUT (§3), so it is one remap and no extra cost.
+
+⚠️ **Trap, either route:** five of the six state slots are the action echo
+(`last_action[0..2]` plus the two PD-filter slots derived from it). They must be expressed in
+the **same frame as the image**. Rotating the outgoing command while feeding back the unrotated
+one — or vice versa — hands the policy an image/echo pair that contradicts itself.
 
 ### 3. Fisheye rectification
 

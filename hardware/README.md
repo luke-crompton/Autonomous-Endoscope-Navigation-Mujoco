@@ -44,8 +44,8 @@ here. Procedures that exercise both go in `bringup/`.
 
 ## What the rig has to provide
 
-These are requirements the simulator imposes, derived in
-[`../docs/CONTROL_LOOP_REPORT_2026-08-05.md`](../docs/CONTROL_LOOP_REPORT_2026-08-05.md) §8.
+These are requirements the simulator imposes — see [`../docs/architecture.md`](../docs/architecture.md)
+for how the loop works, and the constants table at the end of this page for the exact numbers.
 Nothing here describes measured hardware behaviour.
 
 | | Requirement |
@@ -83,3 +83,28 @@ Three sim-to-real gaps are known and quantified:
    an improvement.
 3. **Camera roll offset is unmeasured.** In sim the tip camera is body-fixed and never rotates,
    so the image↔cable relationship is a constant. On the real scope that constant is unknown.
+   The measurement procedure and what to do with the result are in [`bringup/`](bringup/) §2.
+
+---
+
+## Constants the deployment loop must reproduce
+
+Read straight off `navigation/v8_p1/` (which is under version control). For the reward shape,
+domain randomisation and episode logic — all training-only — see
+[`../docs/architecture.md`](../docs/architecture.md).
+
+| Quantity | Value | Note |
+|---|---|---|
+| Decision rate | **25 Hz** (40 ms) | 80 MuJoCo substeps × 0.5 ms in sim |
+| `depth` observation | `(1, 54, 96)` float32, `[0, 1]` | normalise by **each frame's own maximum**, not a fixed metric clip — the obs is scale-relative |
+| Camera field | **100.0° H × 67.7° V**, rectilinear, 16:9 | the sim camera and the DA3 fine-tune camera are the same camera by construction |
+| `state` observation | `[cmd_x_n, cmd_y_n, last_action[0..2], tip_contact]` | 5 of 6 are software echo; only `tip_contact` is a sensor |
+| `MAX_PULL_X` | 6.795 mm (X pair spans 12 joints) | ⚠️ from sim geometry — **measure on the real scope**, keep X and Z separate |
+| `MAX_PULL_Z` | 7.361 mm (Z pair spans 13 joints) | ⚠️ same |
+| PD command shaper | `PD_KP = 0.1803`, `PD_KD = 0.0475` | fitted at 25 Hz — **do not arithmetically rescale** for another rate (poles go unstable) |
+| PD shaper response | τ = 214 ms, 95% settle 640 ms, 0% overshoot | its output is fed back as obs slots 0–1 — the filter is *inside* the observation loop |
+| Action `a[0]`, `a[1]` | absolute pull setpoint `= a × MAX_PULL` | a position command, not a rate |
+| Action `a[2]` | feed rate, full scale `1.2 mm/step = 30 mm/s` | accumulates into a monotonic insertion-depth target |
+| Tendon force rail | **−10 N, pull-only** | cables cannot push |
+| Policy output | take the Gaussian **mean**, not a sample | sampled σ ≈ 0.63; the mean cuts tip-command jitter ~91% |
+| GRU hidden state | persists across steps, zeroed only at run start | re-instantiating the network per frame is not the trained policy |

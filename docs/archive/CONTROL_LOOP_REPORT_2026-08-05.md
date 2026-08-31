@@ -1,9 +1,11 @@
 # Control-Loop Progress Report — Mujuco_V3 / v8_p1 — 2026-08-05
 
-> **This is a dated snapshot, not a plan.** The single source of truth for where the project is
-> and what happens next remains `docs/CURRENT_PLAN.md`. If this document and that one disagree,
-> **CURRENT_PLAN.md wins** — this one only records the state of the control loop on the date in
-> its title and does not decide anything.
+> **Archived 2026-08-31.** Superseded by [`../architecture.md`](../architecture.md) (how the loop
+> works) and [`../../hardware/README.md`](../../hardware/README.md) (the constants a rig
+> implementation must match, and the camera-roll-offset procedure, now in
+> [`../../hardware/bringup/README.md`](../../hardware/bringup/README.md)). Kept as a dated record
+> of the control loop on 2026-08-05; numbers and file:line citations inside are frozen at that
+> date and may have drifted. `docs/CURRENT_PLAN.md` remains the source of truth for project state.
 
 **Snapshot date: 2026-08-05.** Written to be self-contained: it assumes the reader has **no
 access to the repository**. Every number below was read directly out of the live code in

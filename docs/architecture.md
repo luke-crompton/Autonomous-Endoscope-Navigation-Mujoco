@@ -1,9 +1,9 @@
 # System architecture
 
-How the whole thing fits together, at the level of "what talks to what and why". For the
-line-by-line version — every constant traced to a file and line —
-see [CONTROL_LOOP_REPORT_2026-08-05.md](CONTROL_LOOP_REPORT_2026-08-05.md). For *why* it ended
-up this shape, see [ITERATION_HISTORY.md](ITERATION_HISTORY.md).
+How the whole thing fits together, at the level of "what talks to what and why". For the exact
+constants a hardware implementation must match, see
+[../hardware/README.md](../hardware/README.md). For *why* it ended up this shape, see
+[ITERATION_HISTORY.md](ITERATION_HISTORY.md).
 
 **This describes the `v8_p1` line**, the live one. `v7_shaft/` and `v6_dr/` are earlier
 generations kept runnable; `navigation/README.md` says which is which.
