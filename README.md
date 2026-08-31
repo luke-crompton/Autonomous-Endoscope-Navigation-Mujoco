@@ -3,7 +3,7 @@
 **A reinforcement learning system that drives a flexible endoscope through a colon on its own,
 using nothing but the view from its own tip camera.**
 
-<video src="https://github.com/luke-crompton/Autonomous-Endoscope-Navigation-Mujoco/raw/main/docs/media/closedloop_nav_demo_30s.mp4" controls muted playsinline width="900"></video>
+[![Closed-loop navigation — the policy steering itself through a colon](docs/media/closedloop_nav_demo.gif)](docs/media/closedloop_nav_demo_30s.mp4)
 
 *The full closed loop — one episode, ~30 s, no cuts. The trained policy steers itself through a
 procedurally generated colon on nothing but what it can see.
@@ -13,7 +13,7 @@ third-person view of the 44-link flexible shaft bending and buckling against the
 pushed in. Perception runs on a Windows GPU; the policy checkpoint runs in WSL2. Nothing is
 privileged and nothing is scripted.*
 
-<sub>If the player above doesn't load, [download the clip](docs/media/closedloop_nav_demo_30s.mp4) (3 MB, H.264).</sub>
+<sub>Click the clip for the full-resolution 30 s video — [`closedloop_nav_demo_30s.mp4`](docs/media/closedloop_nav_demo_30s.mp4) (H.264, 3 MB).</sub>
 
 ---
 
