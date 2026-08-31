@@ -1,12 +1,13 @@
 
 
-https://github.com/user-attachments/assets/309c087c-117a-41e7-99f0-b1bf73bae10e
+
 
 # Autonomous Colonoscope Navigation
 
 **A reinforcement learning system that drives a flexible endoscope through a colon on its own,
 using nothing but the view from its own tip camera.**
 
+https://github.com/user-attachments/assets/b2985821-82e3-45b8-a4c3-d8f6d5c38c22
 
 *The full closed loop — one episode, ~30 s, no cuts. The trained policy steers itself through a
 procedurally generated colon on nothing but what it can see.
