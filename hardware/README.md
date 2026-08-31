@@ -8,6 +8,7 @@ complete and the next milestone is a physical rig trial.
 |---|---|
 | [`cad/`](cad/) | SolidWorks sources for the scope, feeder and mounting, plus [`Full assem.STL`](cad/Full%20assem.STL) — **click it on GitHub for an interactive 3D view of the rig** |
 | [`firmware/`](firmware/) | Arduino / microcontroller code driving the tendon motors and feed rollers |
+| [`electronics/`](electronics/) | Flex PCBs. So far [`flex_tip_sensor/`](electronics/flex_tip_sensor/) — the tip-contact sensor (fabricated, not yet calibrated) |
 | [`bringup/`](bringup/) | Test procedures, measurement scripts, and recorded results |
 
 **Live camera and depth tooling is not here** — it lives in `perception/realtime/`
@@ -29,7 +30,7 @@ Nothing here describes measured hardware behaviour.
 | **Camera** | 16:9 frame; the policy was trained on 100° horizontal rectilinear |
 | **Tendons** | 4 cables in 2 antagonistic pairs, **pull-only**, position-commanded to an absolute pull in mm |
 | **Feed** | signed insertion rate, ±30 mm/s at full command |
-| **Contact** | a binary tip-contact flag — the only exogenous signal in the state vector besides the image |
+| **Contact** | a binary tip-contact flag — the only exogenous signal in the state vector besides the image. Hardware: [`electronics/flex_tip_sensor/`](electronics/flex_tip_sensor/), fabricated but not yet calibrated |
 | **Software state** | the PD command shaper and previous-action echo must be **reproduced in software**, not measured — five of the six state floats are internal, not sensors |
 
 ---
@@ -39,6 +40,10 @@ Nothing here describes measured hardware behaviour.
 **Not yet trialled.** Bring-up is in progress; see [`bringup/`](bringup/) for the pre-flight
 measurements that have to happen before the first policy-driven run, and
 [`../docs/CURRENT_PLAN.md`](../docs/CURRENT_PLAN.md) §7 for the authoritative sequencing.
+
+The **tip-contact sensor now exists in hardware** — a polyimide flex electrode with a
+piezoresistive film, [`electronics/flex_tip_sensor/`](electronics/flex_tip_sensor/) — but it is
+uncalibrated and not yet wired in, so it does not change the status above.
 
 Three sim-to-real gaps are known and quantified:
 

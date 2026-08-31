@@ -93,7 +93,7 @@ v8_p1 has to physically push a flexible shaft. The completion metric also change
 | `navigation/` | The RL system — environment, training, evaluation. Three lines: `v8_p1/` (**live**), `v7_shaft/` (superseded), `v6_dr/` (frozen milestone). See [navigation/README.md](navigation/README.md). |
 | `perception/` | Monocular depth. `rd_v2/` is the DA3-SMALL fine-tune pipeline and error-map generator; `realtime/` is the live deployment runtime and camera tooling. |
 | `simulation/` | Reference videoscope tip model. The navigation bundles carry their own copies by design. |
-| `hardware/` | The physical rig — CAD, firmware, and bring-up measurements. See [hardware/README.md](hardware/README.md). |
+| `hardware/` | The physical rig — CAD, firmware, flex-PCB electronics, and bring-up measurements. See [hardware/README.md](hardware/README.md). |
 | `docs/` | Documentation, iteration history, and archived training runs. |
 
 Trained checkpoints are **not** in this repository — they exceed GitHub's file size limit and
