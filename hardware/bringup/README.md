@@ -93,20 +93,10 @@ across full traverses and check whether it **rises at bends**.
 
 ---
 
-## Known open problem: the feeder stalls at slow insertion
+## Note: the sim feeder only transports at 30 mm/s
 
-Found 2026-08-04 in **simulation**, still unexplained, and it constrains what a rig trial can
-tell you.
-
-With `--feed_scale 0.1` (3 mm/s, real-colonoscopy pace) and a fixed open-loop `[0,0,1]` action —
-no policy involved — the scope advances **9.45 mm and then stops permanently**, while the
-commanded insertion climbs to 84 mm. Roller actuator force stays at ~0.02–0.09 N and does not
-grow with the 74 mm position error. Same seed and action at `--feed_scale 1.0`: 96 mm in 109
-steps.
-
-So the friction-grip feeder transports at 30 mm/s and fails to transport at 3 mm/s.
-
-**Consequence:** the sim cannot currently represent a hand-fed insertion, and the policy has only
-ever experienced 30 mm/s — 1.2 mm of visual progress per decision, where hand-feeding gives
-0.12 mm. Whether the GRU depends on that rate is unknown and untestable until this is diagnosed.
-Since insertion is hand-fed by design, this is a first-class gap, not a curiosity.
+The sim's roller feeder moves the shaft correctly at the trained 30 mm/s. With `--feed_scale 0.1`
+(3 mm/s) it slips and stalls after ~9 mm — a friction-contact artefact found 2026-08-04, not
+diagnosed. It matters only for slow-feed training, which is not planned: the rig is hand-fed and
+the first trials judge steering at the policy's own pace, so it does not constrain them. See
+[`../../docs/CURRENT_PLAN.md`](../../docs/CURRENT_PLAN.md) §8.

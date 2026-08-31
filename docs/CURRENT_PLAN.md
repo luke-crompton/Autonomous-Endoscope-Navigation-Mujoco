@@ -1,13 +1,11 @@
 # Current Plan — Mujuco_V3
 
-**Last updated: 2026-08-04 (evening — post-retrain).** This is the **single source of truth** for
-where the project is and what happens next. If another document disagrees with this one, this one
-wins.
+**Last updated: 2026-08-31.** This is the **single source of truth** for where the project is and
+what happens next. If another document disagrees with this one, this one wins.
 
 It replaces three documents, now in `docs/archive/superseded_plans/`:
-`V8_PLAN.md`, `MODELLING_PROBLEMS.md`, and the standalone force/depth-rate plan written earlier
-today. Everything from them that survived scrutiny is carried forward below — nothing of value
-was lost in the archive. See §9 for what was wrong with each.
+`V8_PLAN.md`, `MODELLING_PROBLEMS.md`, and a standalone force/depth-rate plan. Everything from
+them that survived scrutiny is carried forward below. See §10 for what was wrong with each.
 
 ---
 
@@ -26,8 +24,9 @@ was lost in the archive. See §9 for what was wrong with each.
 4. **The viewer now shows deployment behaviour, not training behaviour** (§6.3). This was the
    session's main finding and it changed how the policy looks entirely — see that section before
    drawing any conclusion from a viewer session.
-5. **Phase 2** (gravity + anatomical colon) is real, unstarted, and comes *after* the rig trial.
-   It is not competing work.
+5. **What comes after the rig trial is a further phase scoped from the physical-test results** —
+   gravity and an anatomically-oriented colon are the likely content (§9), but nothing there is
+   committed until the hardware shows which sim gap actually matters.
 
 ---
 
@@ -613,8 +612,10 @@ CNN docstring was rewritten from the old 64×64 stack (`13×13×64 = 10816`) to 
 7. ~~Archive the old run, delete the run dir, re-sync~~ ✅ done 2026-08-04
 8. ~~Retrain on the rig~~ ✅ done 2026-08-04 — 4.52M steps, ~97% mean progress (training stat)
 9. ~~Re-sync the WSL2 mirror with the new code + checkpoint~~ ✅ done 2026-08-04
-10. **PHYSICAL RIG TRIAL** ← *next action*. Test the policy as-is and let the observed failure
-    mode pick the next retrain, rather than fixing things blind. Pre-flight below.
+10. **PHYSICAL RIG TRIAL** ← *next action*. The first trials are **hand-fed** — the shaft is
+    pushed in by hand (the automatic feed drive is not built) so the **steering response** can be
+    judged on its own. Test the policy as-is and let the observed failure mode pick the next
+    retrain, rather than fixing things blind. Pre-flight below.
 
 ### Pre-flight before the rig trial
 
@@ -661,19 +662,13 @@ cleared, so nothing was lost this time (cf. the 2026-07-13 `--delete` incident).
   eval deployment-honest but breaks comparability with all historical numbers; adding an opt-in
   `--deterministic` flag preserves comparison. Recommendation was **the flag** — the opposite call
   to the viewer, because eval numbers get compared across runs and viewer sessions do not.
-- **⚠️ The roller feeder stalls at slow insertion — found 2026-08-04, unexplained.** With
-  `--feed_scale 0.1` (3 mm/s, real-colonoscopy pace) and a fixed open-loop `[0,0,1]` action —
-  **no policy involved** — the scope advances **9.45 mm and then stops permanently**, while the
-  commanded insertion climbs to 84 mm. Roller actuator force stays at ~0.02–0.09 N and does *not*
-  grow with the 74 mm position error, and `ncon` is pinned at 52 (the tip has not even reached a
-  bend). Same seed, same action at `--feed_scale 1.0`: 96 mm in 109 steps. So the friction-grip
-  feeder transports at 30 mm/s and fails to transport at 3 mm/s.
-  **Consequence: sim cannot currently represent a hand-fed insertion**, and the policy has only ever
-  experienced 30 mm/s — 1.2 mm of visual progress per decision, where hand-feeding gives 0.12 mm.
-  Whether the GRU depends on that rate is **unknown and untestable until this is diagnosed.** Given
-  insertion is hand-fed by design (§3), this is now a first-class gap. Suspects: roller contact
-  friction, `solref`/`solimp`, actuator `kv`. Note fixing it may change behaviour at 30 mm/s and
-  invalidate the checkpoint.
+- **Sim's roller feeder only transports at the trained speed.** It moves the shaft correctly at
+  30 mm/s — the rate the policy trained and runs at. With `--feed_scale 0.1` (3 mm/s) it slips and
+  stalls after ~9 mm (found 2026-08-04): a friction-contact artefact in the sim feeder, not
+  diagnosed. This only matters for *slow-feed* training, which is not planned — the rig is hand-fed
+  and the first trials judge steering at the policy's own pace (§7). Not on the critical path.
+  If slow-feed training is ever wanted, suspects are roller contact friction, `solref`/`solimp`,
+  actuator `kv`, and fixing it could shift behaviour at 30 mm/s.
 - **Ranked list of what would meaningfully improve transfer** (2026-08-04), for after the rig trial:
   1. **DR over the command→deflection map.** The policy has never seen a miscalibrated tip — DR
      scales actuator *force*, and the integral actuator still reaches 98–99% of commanded bend every
@@ -682,21 +677,23 @@ cleared, so nothing was lost this time (cf. the 2026-07-13 `--delete` incident).
   2. **Stateful backlash / slack on direction reversal.** Sim's dead zone is stateless and
      zero-centred; the dominant Bowden effect is winding in slack *before* the tip moves, and it
      worsens with sheath curvature — i.e. worst in tight bends. Same class as 1; same retrain.
-  3. **Slow-feed training** — blocked on the feeder stall above.
+  3. ~~Slow-feed training~~ — not planned; see the feeder note above.
   4. ~~Action-rate penalty~~ — **considered and rejected 2026-08-04**, see §6.3 for the reasoning.
 
 ---
 
 ## 9. Roadmap after this
 
-**Phase 2 — gravity + anatomical left-lateral-decubitus colon.** Real, unstarted, and **has no
-plan document.** The previous one (`V8_PHASE2_PLAN.md`, written 2026-07-12) was deleted on
-2026-08-02: it was written against the pre-retrain shaft, so its shaft mass was wrong by ~1.8×
-(~0.396 kg vs the actual ~0.22 kg) — and mass is the entire input to a gravity plan. Its banner
-also claimed all line numbers were verified against live code, a verification that predated the
-2026-07-13 retrain by one day.
+**The next phase is defined by what the rig trial shows.** The physical tests decide which sim
+gap is worth a retrain; the transfer-improvement list in §8 is the menu the rig picks from.
+Nothing below is committed.
 
-If Phase 2 starts, **re-scope it from live code.** Current true constants:
+**The likely content is gravity + an anatomically-oriented colon** — the sim has neither. Real
+work, unstarted, no plan document. The previous one (`V8_PHASE2_PLAN.md`, 2026-07-12) was deleted
+2026-08-02: written against the pre-retrain shaft, its shaft mass was wrong by ~1.8× (~0.396 kg
+vs the actual ~0.22 kg), and mass is the whole input to a gravity plan.
+
+If it starts, **re-scope from live code.** Current true constants:
 
 | Quantity | Value |
 |---|---|
@@ -705,11 +702,11 @@ If Phase 2 starts, **re-scope it from live code.** Current true constants:
 | Total scope | **495 mm**, in a 500 mm colon (`colon_generator.py:38`) |
 | Cantilevered outside the colon at reset | ~400 mm, ~0.20 kg ≈ **~2.0 N** — recompute, do not quote |
 
-The two problems it has to solve together are unchanged and still real: the colon currently starts
-heading world **+Z** (anti-parallel to default gravity) with a random 3D bend axis per seed, so no
-single gravity vector is anatomically consistent; and most of the shaft cantilevers outside the
-colon at reset with no floor in the scene, which needs per-body `gravcomp` (unproven here). The
-anatomical reference is `Mujuco_V2\Perception\Colon_mesh_xml.py` — read-only, never run from V2.
+The two problems it would have to solve together: the colon currently starts heading world **+Z**
+(anti-parallel to default gravity) with a random 3D bend axis per seed, so no single gravity
+vector is anatomically consistent; and most of the shaft cantilevers outside the colon at reset
+with no floor in the scene, which needs per-body `gravcomp` (unproven here). The anatomical
+reference is `Mujuco_V2\Perception\Colon_mesh_xml.py` — read-only, never run from V2.
 
 ---
 
