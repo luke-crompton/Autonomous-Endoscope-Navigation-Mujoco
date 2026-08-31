@@ -11,15 +11,22 @@ complete and the next milestone is a physical rig trial.
 
 ![The scope tip and its internals](electronics/flex_tip_sensor/tip_build_photo.jpg)
 
-*The bending tip during assembly: an articulating disk stack (top), a tip section with its four
-tendon cables and camera wiring (right), and the orange [flex tip-contact sensor](electronics/flex_tip_sensor/)
-that bonds over it (left).*
+*Two stages of the bending tip during assembly. Top: a bare articulating disk stack. Bottom: a
+wired tip section — the flat orange ribbon is the camera cable, the four fine cables are the
+steering tendons, and the coiled section is the tension spring. (The flex tip-contact sensor is
+not fitted in this shot.)*
 
-<img width="426" height="240" alt="tip to shaft internals " src="https://github.com/user-attachments/assets/7203eafa-3f23-491c-967b-d8927613296f" />
+<table>
+<tr>
+<td><img width="426" height="240" alt="tip-to-shaft internals" src="https://github.com/user-attachments/assets/7203eafa-3f23-491c-967b-d8927613296f" /></td>
+<td><img width="360" alt="shaft cross-section" src="shaft_cross_section.png" /></td>
+</tr>
+</table>
 
-
-The tip-to-shaft internals: the full shaft assembly end to end with the flexible
-spring and braided housing removed.*
+*Left: the tip-to-shaft internals — the full shaft assembly end to end with the flexible spring
+and braided housing removed. Right: the shaft cross-section — four tendon Bowden tubes at
+N / E / S / W, the camera cable down the centre, and the two flex-sensor signal wires in the
+diagonal gaps, all inside a tension spring and a braided sleeve.*
 
 | Folder | What goes in it |
 |---|---|
