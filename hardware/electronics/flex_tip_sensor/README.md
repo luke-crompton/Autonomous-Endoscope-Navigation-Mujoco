@@ -11,7 +11,17 @@ Treat the geometry and construction below as settled and everything about its el
 behaviour as open. `docs/PROGRESS_REPORT_2026-07-14.md` still lists this sensor as unbuilt; that
 is the only thing now out of date there.
 
-*Photo: to be added.*
+<img src="tip_build_photo.jpg" alt="the flex sensor alongside the articulating tip">
+
+*The orange flex sensor — comb head at the left end, pigtail and green hook-up wires trailing off
+— next to a bare articulating tip stack (top) and a tip section with its tendon cables and camera
+wiring in place (right). This is the build stage before the sensor is bonded and the spring and
+braided housing go on.*
+
+<img src="kicad_layout.png" alt="KiCad layout of the flex sensor" width="170">
+
+*KiCad layout, to scale: the comb head (top) and the 1.5 mm pigtail running down to the two
+solder pads.*
 
 ## What it is
 

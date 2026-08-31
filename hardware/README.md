@@ -4,6 +4,13 @@ The real scope, the mechanism that drives it, and the measurements that decide w
 trained policy transfers. This is where the project is now: simulation work for this phase is
 complete and the next milestone is a physical rig trial.
 
+![The scope tip and its internals](electronics/flex_tip_sensor/tip_build_photo.jpg)
+
+*The bending tip during assembly: an articulating disk stack (top), a tip section with its four
+tendon cables and camera wiring (right), and the orange [flex tip-contact sensor](electronics/flex_tip_sensor/)
+that bonds over it (left). An [8 s clip of the tip-to-shaft internals](../docs/media/tip_to_shaft_internals.mp4)
+shows the same assembly end to end with the spring and braided housing removed.*
+
 | Folder | What goes in it |
 |---|---|
 | [`cad/`](cad/) | SolidWorks sources for the scope, feeder and mounting, plus [`Full assem.STL`](cad/Full%20assem.STL) — **click it on GitHub for an interactive 3D view of the rig** |
