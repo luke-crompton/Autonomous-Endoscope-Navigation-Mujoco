@@ -7,6 +7,10 @@
 **A reinforcement learning system that drives a flexible endoscope through a colon on its own,
 using nothing but the view from its own tip camera.**
 
+> **⚠️ Work in progress.** This is an active research project — the code, results, and
+> documentation are all still changing. Treat everything here as provisional, and see
+> [docs/CURRENT_PLAN.md](docs/CURRENT_PLAN.md) for where it actually stands right now.
+
 https://github.com/user-attachments/assets/b2985821-82e3-45b8-a4c3-d8f6d5c38c22
 
 *The full closed loop — one episode, ~30 s, no cuts. The trained policy steers itself through a
