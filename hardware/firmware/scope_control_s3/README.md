@@ -18,7 +18,7 @@ sketch mirrors it in C++. Bump `PROTO_VERSION` in both on any change.
 
 | Concern | Behaviour |
 |---|---|
-| Setpoint → motion | `cmd_x/y_pair_mm` → per-servo goal ticks via `MM_PER_TICK`, `PULL_SIGN`, `ZERO_TICK=2048`. Each antagonistic pair moved **equal-and-opposite in one SYNC WRITE** so the two servos start together. |
+| Setpoint → motion | normalised `cmd_x/y_n` ∈ [−1,1] → per-servo goal ticks via the **asymmetric per-direction MAX_PULL** limits, `PULL_SIGN`, `ZERO_TICK=2048`. Each antagonistic pair moved **equal-and-opposite in one SYNC WRITE** so the two servos start together. |
 | Rate | servo goals streamed at `motor_hz` (200); firmware-side slew clamp `MAX_TICKS_PER_CYCLE` bounds tip speed regardless of what's commanded. |
 | Safety governor | per-servo current (fast, from the bus) and per-cable tension (HX711) — over a configurable limit for `spike_debounce_ms` → **SAFE_HOLD** (freeze goals, keep torque). |
 | E-stop | `ESTOP` command or a critical fault → `ESTOP_MOSFET_PIN` cuts the servo supply. Latching; `CLEAR_SAFETY` re-energises and returns to SAFE_HOLD. |
@@ -41,12 +41,15 @@ ignored until `/scope/command` `ENABLE`.
 
 | Constant | Source |
 |---|---|
-| `MM_PER_TICK` | `sts3032_tendon_cal.ino` `bend <x\|z> <deg>` command |
 | `AXIS_SERVO`, `AXIS_INVERT` | which pair is cmd_x vs cmd_y, and steering sign — watch the camera image and flip |
 | `ESTOP_MOSFET_PIN`, `ESTOP_ENABLE_LEVEL` | the actual e-stop switch wiring |
 | `CURRENT_LSB_MA` | STS3032 REG 69 scale (bench-measure against a known load) |
 | `TIP_CONTACT_PIN` + threshold, `TIP_CONTACT_FORCE_ZERO` | once the flex sensor is fitted |
 | `HX_RATE_PIN` | set if you wire HX711 RATE high for 80 SPS (else tension is ~10 Hz) |
+
+`MAXPULL_DEFAULT` is the measured `bend` result (x +724/−681, z +840/−603 ticks,
+2026-09-09) — `scope_link` overrides it at runtime from `scope_params.yaml`
+(`maxpull_*_ticks`, `maxpull_headroom`), so it need not be exact.
 
 ## Testing without hardware
 

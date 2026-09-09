@@ -24,7 +24,7 @@ camera idx 1 → DA3 → to_obs       |
                                                           [ policy_node ]
                                                             APPO + GRU + PD command shaper
                                                                  │
-                                                    /scope/action ▼   scope_msgs/ScopeAction (pull, mm)
+                                                    /scope/action ▼   ScopeAction (normalised -1..1 per pair)
                                                           [ scope_link ] ──serial(COBS)──► ESP32-S3
                                                                  ▲                          runtime firmware
                                                                  └── /scope/telemetry, /scope/estop
@@ -33,6 +33,13 @@ camera idx 1 → DA3 → to_obs       |
 No fisheye undistort — the 122°/100° lens gap is a known, accepted transfer risk
 (`CURRENT_PLAN.md` §8). Insertion is hand-fed, so the policy's feed action never
 reaches the motors; `policy_node` consumes it only as observation echo.
+
+The steering command on the wire is **normalised** (±1 = full commanded bend).
+The PD shaper runs normalised too — exactly matching the sim's `cmd / MAX_PULL`,
+so nothing ROS-side needs `MAX_PULL`. The real per-axis-per-direction encoder
+limits are **asymmetric** (measured: x +724/−681, z +840/−603 ticks —
+`hardware/bringup/measured_constants.md`) and live only in the firmware, pushed
+from `scope_params.yaml` via the `CONFIG` frame.
 
 ## Layout
 
@@ -51,12 +58,14 @@ reaches the motors; `policy_node` consumes it only as observation echo.
 | `ros2_ws/src/scope_control/config/scope_params.yaml` | the loop's constants — **done** |
 | `win_vision/win_vision_server.py` | camera → DA3 → TCP (Windows, py3.11) — **done** |
 | `tools/mock_firmware.py` | fake ESP32-S3 over a serial pty, for `scope_link` tests — **done** |
-| `../hardware/firmware/scope_control_s3/` | ESP32-S3 runtime firmware (mm→ticks, SYNC-WRITE pairs, safety governor, e-stop) — **done, not compile-tested here** |
+| `../hardware/firmware/scope_control_s3/` | ESP32-S3 runtime firmware (normalised→ticks, SYNC-WRITE pairs, safety governor, e-stop) — **done, not compile-tested here** |
 
 **Whole loop is now drafted.** Remaining before a rig trial is calibration +
-verification, not new code: measure `MM_PER_TICK` / `MAX_PULL` / axis signs /
-`CURRENT_LSB_MA`, wire the e-stop MOSFET + tip sensor, and verify
-`PolicyRunner.act()` against `viewer_sf.py --deterministic` to 1e-6.
+verification, not new code: verify `AXIS_SERVO` / `AXIS_INVERT` (which pair is X
+vs Z, steering sign) by driving the tip; wire the e-stop MOSFET + tip sensor;
+bench-measure `CURRENT_LSB_MA`; verify `PolicyRunner.act()` against
+`viewer_sf.py --deterministic` to 1e-6. `MAX_PULL` is measured
+(`scope_params.yaml`).
 
 ### Depth wire protocol (win_vision → depth_bridge)
 
@@ -73,12 +82,13 @@ loud error on mismatch — `win_vision` owns the resize) and republishes as
 
 ### Serial protocol (scope_link ↔ ESP32-S3)
 
-Canonical definition + a COBS/CRC-16 codec in `scope_link_proto.py`; the firmware
-mirrors it in C++. Frames are `COBS(type | payload | crc16)` + `0x00`.
-Host→MCU: `SETPOINT` (x/y pull mm + seq), `CONFIG` (safety limits + rates),
+Canonical definition + a COBS/CRC-16 codec in `scope_link_proto.py` (`PROTO_VERSION 2`);
+the firmware mirrors it in C++. Frames are `COBS(type | payload | crc16)` + `0x00`.
+Host→MCU: `SETPOINT` (cmd_x_n, cmd_y_n ∈ [-1,1] + seq), `CONFIG` (safety limits +
+rates + the 4 asymmetric MAX_PULL tick limits + headroom),
 `COMMAND` (ENABLE/DISABLE/CLEAR_SAFETY/ESTOP), `PING`.
 MCU→Host: `TELEMETRY` (seq echo, flags, tension[4], pos[4], current[4]),
-`LOG`, `PONG`, `HELLO`.
+`LOG`, `PONG`, `HELLO` (applied MAX_PULL + zeros).
 `/scope/estop` is asserted by `scope_link` whenever the link is down, the
 firmware reports ESTOP, or an operator ESTOP is outstanding.
 

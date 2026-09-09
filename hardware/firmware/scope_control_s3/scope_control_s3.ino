@@ -10,7 +10,8 @@
   governor on top.
 
       scope_link (WSL)  <--UART 921600, COBS+CRC16-->  this firmware
-        /scope/action  ->  SETPOINT  ->  [mm -> ticks, SYNC WRITE the pairs]
+        /scope/action  ->  SETPOINT  ->  [normalised -1..1 -> ticks (asymmetric
+                                          per-direction MAX_PULL), SYNC WRITE the pairs]
         /scope/command ->  ENABLE / DISABLE / CLEAR_SAFETY / ESTOP
                        <-  TELEMETRY (50 Hz): seq echo, tip_contact, tension,
                                               servo pos + current, safety state
@@ -59,11 +60,12 @@
 
   ------------------------------------------------------ WHAT IS STILL A GUESS
   Marked "TODO/VERIFY" below and safe to run only on the bench until checked:
-    - MM_PER_TICK           (drum radius; comes from the firmware `bend` cal cmd)
     - AXIS_SERVO / AXIS_INVERT  (which servo pair is cmd_x vs cmd_y, and the
                                  steering sign -- watch the image and flip)
     - ESTOP_MOSFET_PIN + ESTOP_ENABLE_LEVEL
     - CURRENT_LSB_MA        (STS3032 REG 69 scale)
+  MAXPULL_DEFAULT is the measured `bend` result (2026-09-09); scope_link's
+  CONFIG frame overrides it from scope_params.yaml, so it need not be exact.
     - TIP_CONTACT_* pins/threshold
 */
 
@@ -75,7 +77,7 @@
 //  CONFIG
 // ======================================================================
 
-static const uint8_t  PROTO_VERSION = 1;   // must match scope_link_proto.py
+static const uint8_t  PROTO_VERSION = 2;   // must match scope_link_proto.py
 
 // ---- pins ----
 static const int8_t  BUS_TX_PIN = 17;
@@ -92,18 +94,20 @@ static const bool     TIP_CONTACT_FORCE_ZERO = true;   // sensor not wired yet
 static const int      TIP_CONTACT_ADC_THRESHOLD = 1800; // TODO calibrate
 
 // ---- tendon geometry ----
-static const float   TICKS_PER_DEG = 4096.0f / 360.0f;    // 11.3778
 static const int16_t ZERO_TICK     = 2048;                // EEPROM zero from `setzero`
 static const int16_t SEAM          = 100;                 // stay this far from the 0/4095 wrap
-static const int16_t MAX_ABS_TICKS_FROM_ZERO = 640;       // ~56 deg mechanical safety clamp; refine w/ MAX_PULL
+static const int16_t MAX_ABS_TICKS_FROM_ZERO = 950;       // hard outer clamp (~83 deg); a bad CONFIG can't drive past this
 
-// mm of cable pull per encoder tick. TODO: measure with the firmware `bend`
-// command (hardware/firmware/sts3032_tendon_cal.ino). 0.02 is a placeholder.
-static const float   MM_PER_TICK   = 0.02f;
-static const float   MM_PER_TICK_PLACEHOLDER = 0.02f;     // fwlog a warning while unchanged
+// Per-axis, per-direction bend limits in ENCODER TICKS -- the rig's + and -
+// directions are ASYMMETRIC (measured 2026-09-09 with `bend`;
+// hardware/bringup/measured_constants.md). The normalised command -1..+1 is
+// mapped to ticks with these. Compiled defaults; CONFIG overrides at runtime.
+// Index [axis][0] = + direction, [axis][1] = - direction.
+static const uint16_t MAXPULL_DEFAULT[2][2] = { { 724, 681 }, { 840, 603 } };
+static const float    MAXPULL_HEADROOM_DEFAULT = 0.9f;    // bend was measured tip-free; friction reduces it
 
 // Axis -> antagonistic servo pair. AXIS_SERVO[axis] = { pull+, pull- }.
-// axis 0 = ScopeAction.cmd_x_pair_mm, axis 1 = cmd_y_pair_mm.
+// axis 0 = ScopeAction.cmd_x_n, axis 1 = cmd_y_n.
 // The two servos of a pair share a PULL_SIGN (measured 2026-09-08).
 static const uint8_t AXIS_SERVO[2][2] = { { 1, 3 }, { 2, 4 } };   // TODO verify which is X vs Z
 static const bool    AXIS_INVERT[2]   = { false, false };         // flip if an axis steers backwards
@@ -127,8 +131,20 @@ struct SafetyCfg {
   uint16_t comms_timeout_ms  = 120;
   uint16_t motor_hz          = 200;
   uint16_t telem_hz          = 50;
+  uint16_t maxpull[2][2]     = { { MAXPULL_DEFAULT[0][0], MAXPULL_DEFAULT[0][1] },
+                                 { MAXPULL_DEFAULT[1][0], MAXPULL_DEFAULT[1][1] } };
+  float    maxpull_headroom  = MAXPULL_HEADROOM_DEFAULT;
 };
 static SafetyCfg cfg;
+
+// applied tick limit for axis (0=x,1=z), direction (positive?), headroom folded in
+static int16_t appliedMaxPull(uint8_t axis, bool positive) {
+  float raw = (float)cfg.maxpull[axis][positive ? 0 : 1];
+  int16_t v = (int16_t)lroundf(raw * cfg.maxpull_headroom);
+  if (v < 1) v = 1;
+  if (v > MAX_ABS_TICKS_FROM_ZERO) v = MAX_ABS_TICKS_FROM_ZERO;
+  return v;
+}
 
 // ---- HX711 tension calibration (servo order) ----
 // counts/gram is one shared factor (hardware/bringup/measured_constants.md).
@@ -245,6 +261,7 @@ static uint32_t rdU32(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v
 static uint16_t rdU16(const uint8_t* p) { uint16_t v; memcpy(&v, p, 2); return v; }
 static void wrF32(uint8_t* p, float v)    { memcpy(p, &v, 4); }
 static void wrU32(uint8_t* p, uint32_t v) { memcpy(p, &v, 4); }
+static void wrU16(uint8_t* p, uint16_t v) { memcpy(p, &v, 2); }
 static void wrI16(uint8_t* p, int16_t v)  { memcpy(p, &v, 2); }
 
 // ======================================================================
@@ -422,8 +439,8 @@ static bool     g_enableIntent = false;   // operator wants RUN
 static uint8_t  g_holdReason   = 4;       // 0 none, 1 comms, 2 current, 3 tension, 4 boot/disable
 static bool     g_allServos    = false;
 
-// latest setpoint from the host
-static float    g_setX_mm = 0.0f, g_setY_mm = 0.0f;
+// latest setpoint from the host: NORMALISED command per pair, -1..+1
+static float    g_setXn = 0.0f, g_setYn = 0.0f;
 static uint32_t g_setSeq  = 0;
 static uint32_t g_lastSetpointMs = 0;
 
@@ -506,8 +523,8 @@ static void clearSafety() {
 // ======================================================================
 
 static void onSetpoint(const uint8_t* p) {
-  g_setX_mm = rdF32(p);
-  g_setY_mm = rdF32(p + 4);
+  g_setXn = rdF32(p);
+  g_setYn = rdF32(p + 4);
   g_setSeq  = rdU32(p + 8);
   g_lastSetpointMs = millis();
 }
@@ -519,14 +536,27 @@ static void onConfig(const uint8_t* p) {
   cfg.comms_timeout_ms  = rdU16(p + 10);
   cfg.motor_hz          = rdU16(p + 12);
   cfg.telem_hz          = rdU16(p + 14);
+  cfg.maxpull[0][0]     = rdU16(p + 16);   // x +
+  cfg.maxpull[0][1]     = rdU16(p + 18);   // x -
+  cfg.maxpull[1][0]     = rdU16(p + 20);   // z +
+  cfg.maxpull[1][1]     = rdU16(p + 22);   // z -
+  cfg.maxpull_headroom  = rdF32(p + 24);
   if (cfg.motor_hz < 20)  cfg.motor_hz = 20;
   if (cfg.motor_hz > 500) cfg.motor_hz = 500;
   if (cfg.telem_hz < 1)   cfg.telem_hz = 1;
   if (cfg.telem_hz > 100) cfg.telem_hz = 100;
-  char m[80];
-  snprintf(m, sizeof(m), "CONFIG: I<%.0fmA T<%.0fg deb%u comms%u motor%uHz telem%uHz",
+  if (cfg.maxpull_headroom < 0.1f) cfg.maxpull_headroom = 0.1f;
+  if (cfg.maxpull_headroom > 1.0f) cfg.maxpull_headroom = 1.0f;
+  for (uint8_t a = 0; a < 2; a++)
+    for (uint8_t d = 0; d < 2; d++)
+      if (cfg.maxpull[a][d] < 1 || cfg.maxpull[a][d] > 4000) cfg.maxpull[a][d] = MAXPULL_DEFAULT[a][d];
+  char m[110];
+  snprintf(m, sizeof(m),
+           "CONFIG: I<%.0fmA T<%.0fg deb%u comms%u motor%uHz telem%uHz MAXPULL x+%d/-%d z+%d/-%d",
            cfg.current_limit_ma, cfg.tension_limit_g, cfg.spike_debounce_ms,
-           cfg.comms_timeout_ms, cfg.motor_hz, cfg.telem_hz);
+           cfg.comms_timeout_ms, cfg.motor_hz, cfg.telem_hz,
+           appliedMaxPull(0, true), appliedMaxPull(0, false),
+           appliedMaxPull(1, true), appliedMaxPull(1, false));
   fwlog(LOG_INFO, m);
 }
 
@@ -571,7 +601,7 @@ static void handleSegment(const uint8_t* seg, size_t n) {
   size_t plen = bl - 3;
   switch (type) {
     case T_SETPOINT: if (plen >= 12) onSetpoint(p); break;
-    case T_CONFIG:   if (plen >= 16) onConfig(p);   break;
+    case T_CONFIG:   if (plen >= 28) onConfig(p);   break;
     case T_COMMAND:  if (plen >= 1)  onCommand(p[0]); break;
     case T_PING:     if (plen >= 4)  sendFrame(T_PONG, p, 4); break;
     default: break;
@@ -608,11 +638,15 @@ static int16_t clampGoal(int16_t g) {
 
 static void desiredGoalsFromSetpoint(int16_t out[5]) {
   for (uint8_t a = 0; a < 2; a++) {
-    float c_mm = (a == 0) ? g_setX_mm : g_setY_mm;
-    if (AXIS_INVERT[a]) c_mm = -c_mm;
+    float n = (a == 0) ? g_setXn : g_setYn;
+    if (AXIS_INVERT[a]) n = -n;
+    if (n >  1.0f) n =  1.0f;
+    if (n < -1.0f) n = -1.0f;
     uint8_t p = AXIS_SERVO[a][0];
     uint8_t q = AXIS_SERVO[a][1];
-    int16_t d = (int16_t)lroundf((float)PULL_SIGN[p] * c_mm / MM_PER_TICK);
+    // asymmetric: the tick limit depends on which way we're bending
+    int16_t lim = appliedMaxPull(a, n >= 0.0f);
+    int16_t d = (int16_t)lroundf((float)PULL_SIGN[p] * n * (float)lim);
     out[p] = clampGoal(ZERO_TICK + d);
     out[q] = clampGoal(ZERO_TICK - d);
   }
@@ -715,11 +749,14 @@ static void sendTelemetry() {
 }
 
 static void sendHello() {
-  uint8_t p[14];
+  uint8_t p[18];                                  // <BB4H4h>
   p[0] = PROTO_VERSION;
   p[1] = 4;
-  wrF32(p + 2, MM_PER_TICK);
-  for (uint8_t s = 0; s < 4; s++) wrI16(p + 6 + s * 2, ZERO_TICK);
+  wrU16(p + 2, (uint16_t)appliedMaxPull(0, true));   // x +
+  wrU16(p + 4, (uint16_t)appliedMaxPull(0, false));  // x -
+  wrU16(p + 6, (uint16_t)appliedMaxPull(1, true));   // z +
+  wrU16(p + 8, (uint16_t)appliedMaxPull(1, false));  // z -
+  for (uint8_t s = 0; s < 4; s++) wrI16(p + 10 + s * 2, ZERO_TICK);
   sendFrame(T_HELLO, p, sizeof(p));
 }
 
@@ -779,8 +816,14 @@ void setup() {
   sendHello();
   fwlog(LOG_INFO, g_allServos ? "scope_control_s3 ready, SAFE_HOLD"
                               : "scope_control_s3 ready, SAFE_HOLD -- NOT all 4 servos found");
-  if (MM_PER_TICK == MM_PER_TICK_PLACEHOLDER)
-    fwlog(LOG_WARN, "MM_PER_TICK is still the placeholder -- run `bend` cal and set it");
+  {
+    char m[100];
+    snprintf(m, sizeof(m), "MAXPULL ticks (headroom %.2f): x+%d x-%d z+%d z-%d",
+             cfg.maxpull_headroom,
+             appliedMaxPull(0, true), appliedMaxPull(0, false),
+             appliedMaxPull(1, true), appliedMaxPull(1, false));
+    fwlog(LOG_INFO, m);
+  }
   if (ESTOP_MOSFET_PIN < 0)
     fwlog(LOG_WARN, "no ESTOP_MOSFET_PIN configured -- e-stop cannot cut the supply");
 }

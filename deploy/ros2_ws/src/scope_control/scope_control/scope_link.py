@@ -89,6 +89,16 @@ class ScopeLink(Node):
         self.declare_parameter("motor_hz", 200)
         self.declare_parameter("telem_hz", 50)
 
+        # Asymmetric per-axis-per-direction encoder limits (ticks), measured with
+        # `bend <x|z>` -- hardware/bringup/measured_constants.md. Firmware maps the
+        # normalised command to ticks with these. maxpull_headroom scales them
+        # down (bend was measured tip-free; friction in the housing reduces it).
+        self.declare_parameter("maxpull_x_pos_ticks", 724)
+        self.declare_parameter("maxpull_x_neg_ticks", 681)
+        self.declare_parameter("maxpull_z_pos_ticks", 840)
+        self.declare_parameter("maxpull_z_neg_ticks", 603)
+        self.declare_parameter("maxpull_headroom", 0.9)
+
         gp = self.get_parameter
         self._port = str(gp("port").value)
         self._baud = int(gp("baud").value)
@@ -145,7 +155,7 @@ class ScopeLink(Node):
 
     def _on_action(self, msg: ScopeAction):
         payload = proto.S_SETPOINT.pack(
-            float(msg.cmd_x_pair_mm), float(msg.cmd_y_pair_mm), int(msg.seq) & 0xFFFFFFFF
+            float(msg.cmd_x_n), float(msg.cmd_y_n), int(msg.seq) & 0xFFFFFFFF
         )
         if self._write(proto.T_SETPOINT, payload):
             self._n_setpoints += 1
@@ -169,6 +179,11 @@ class ScopeLink(Node):
             int(gp("comms_timeout_ms").value) & 0xFFFF,
             int(gp("motor_hz").value) & 0xFFFF,
             int(gp("telem_hz").value) & 0xFFFF,
+            int(gp("maxpull_x_pos_ticks").value) & 0xFFFF,
+            int(gp("maxpull_x_neg_ticks").value) & 0xFFFF,
+            int(gp("maxpull_z_pos_ticks").value) & 0xFFFF,
+            int(gp("maxpull_z_neg_ticks").value) & 0xFFFF,
+            float(gp("maxpull_headroom").value),
         )
         self._write(proto.T_CONFIG, payload)
 
@@ -247,10 +262,11 @@ class ScopeLink(Node):
         elif msg_type == proto.T_PONG:
             pass  # liveness only; _last_rx already bumped
         elif msg_type == proto.T_HELLO:
-            ver, nsrv, mmpt, z0, z1, z2, z3 = proto.S_HELLO.unpack(payload)
+            ver, nsrv, xp, xn, zp, zn, z0, z1, z2, z3 = proto.S_HELLO.unpack(payload)
             self._hello_seen = True
             self.get_logger().info(
-                f"firmware HELLO: proto v{ver}, {nsrv} servos, mm_per_tick={mmpt:.5f}, "
+                f"firmware HELLO: proto v{ver}, {nsrv} servos, "
+                f"applied MAX_PULL ticks x+{xp} x-{xn} z+{zp} z-{zn}, "
                 f"zeros=[{z0},{z1},{z2},{z3}]"
             )
             if ver != proto.PROTO_VERSION:

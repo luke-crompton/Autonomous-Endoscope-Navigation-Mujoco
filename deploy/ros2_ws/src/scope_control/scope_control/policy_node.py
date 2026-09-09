@@ -103,12 +103,11 @@ class PolicyNode(Node):
         self.declare_parameter("pd_kp", 0.1803)
         self.declare_parameter("pd_kd", 0.0475)
 
-        # Absolute pull (mm) at full commanded bend, per axis. The two axes
-        # genuinely differ (X pair spans 12 joints, Z pair 13). These defaults
-        # are SIM GEOMETRY -- measure on the real scope (CURRENT_PLAN.md
-        # section 7, step 1b) and set them in the params file.
-        self.declare_parameter("max_pull_x_mm", 6.795)
-        self.declare_parameter("max_pull_y_mm", 7.361)
+        # NOTE: MAX_PULL is NOT a parameter here. The shaper runs in normalised
+        # units (+/-1 = full commanded bend), exactly as the sim's
+        # cmd_pair / MAX_PULL: the scale factor cancels out of the observation.
+        # The real, asymmetric per-axis-per-direction encoder limits live only
+        # in the firmware (pushed via scope_link's CONFIG frame).
 
         self.declare_parameter("control_rate_hz", 25.0)   # only sizes the stale-frame warning
         self.declare_parameter("tip_contact_default", False)
@@ -120,8 +119,6 @@ class PolicyNode(Node):
         self._state_dim = int(gp("state_dim").value)
         self._kp = float(gp("pd_kp").value)
         self._kd = float(gp("pd_kd").value)
-        self._max_pull_x = float(gp("max_pull_x_mm").value)
-        self._max_pull_y = float(gp("max_pull_y_mm").value)
         self._ctrl_dt = 1.0 / max(float(gp("control_rate_hz").value), 1e-3)
         self._tip_default = bool(gp("tip_contact_default").value)
         self._running = bool(gp("start_running").value)
@@ -130,11 +127,6 @@ class PolicyNode(Node):
             self.get_logger().warn(
                 f"state_dim={self._state_dim} (expected 6). The state vector layout "
                 "below assumes the 6-D [cmd_x_n, cmd_y_n, last_action[0:3], tip_contact]."
-            )
-        if abs(self._max_pull_x - 6.795) < 1e-6 and abs(self._max_pull_y - 7.361) < 1e-6:
-            self.get_logger().warn(
-                "MAX_PULL_X/Y are still the SIM defaults (6.795 / 7.361 mm). These "
-                "normalise two live policy inputs -- measure them on the real scope."
             )
 
         # ---------------- policy runner -------------------------------
@@ -184,7 +176,7 @@ class PolicyNode(Node):
 
         self.get_logger().info(
             f"policy_node up. depth={self._h}x{self._w} state_dim={self._state_dim} "
-            f"KP={self._kp} KD={self._kd} MAX_PULL=({self._max_pull_x},{self._max_pull_y}) mm "
+            f"KP={self._kp} KD={self._kd} (normalised command; MAX_PULL lives in firmware) "
             f"running={self._running}"
         )
 
@@ -270,9 +262,12 @@ class PolicyNode(Node):
         # ---- build the observation (state BEFORE this step's action) ----
         # This is exactly what scope_colon_env._observation() returns at the end
         # of the previous step: shaper state + previous action + latest contact.
+        # self._cmd_{x,y} ARE the normalised shaper outputs -- in sim this is
+        # cmd_pair / MAX_PULL; here the shaper runs normalised so it is cmd_pair
+        # directly.
         state = np.array([
-            self._cmd_x / self._max_pull_x,
-            self._cmd_y / self._max_pull_y,
+            self._cmd_x,
+            self._cmd_y,
             self._last_action[0],
             self._last_action[1],
             self._last_action[2],
@@ -291,15 +286,15 @@ class PolicyNode(Node):
         action = np.asarray(action, dtype=np.float32).reshape(-1)[:3]
 
         # ---- PD command shaper: the "step" (mirrors scope_colon_env.step) ----
-        # Work in mm throughout. The filter is linear and scale-free, so the
-        # normalised obs value cmd/MAX_PULL is identical whether we carry mm or m.
-        target_x = float(action[0]) * self._max_pull_x
-        target_y = float(action[1]) * self._max_pull_y
+        # Normalised units, limit = 1.0. Substituting cmd_n = cmd_pair / MAX_PULL
+        # into the sim's recurrence divides every term by MAX_PULL, giving exactly
+        # this -- the trajectory is identical and independent of the (unknown,
+        # asymmetric) real MAX_PULL. Target is just the action.
         self._cmd_x, self._prev_cmd_x = pd_shaper_step(
-            self._cmd_x, self._prev_cmd_x, target_x, self._kp, self._kd, self._max_pull_x
+            self._cmd_x, self._prev_cmd_x, float(action[0]), self._kp, self._kd, 1.0
         )
         self._cmd_y, self._prev_cmd_y = pd_shaper_step(
-            self._cmd_y, self._prev_cmd_y, target_y, self._kp, self._kd, self._max_pull_y
+            self._cmd_y, self._prev_cmd_y, float(action[1]), self._kp, self._kd, 1.0
         )
 
         # last_action stores the COMMANDED action (pre-shaper), same as
@@ -307,13 +302,13 @@ class PolicyNode(Node):
         self._last_action = action.copy()
         self._seq += 1
 
-        # ---- publish absolute pull setpoints (mm) ----
+        # ---- publish normalised command (-1..+1 per pair) ----
         out = ScopeAction()
         out.header.stamp = now.to_msg()
         out.header.frame_id = "scope_tip"
         out.seq = self._seq
-        out.cmd_x_pair_mm = float(self._cmd_x)
-        out.cmd_y_pair_mm = float(self._cmd_y)
+        out.cmd_x_n = float(self._cmd_x)
+        out.cmd_y_n = float(self._cmd_y)
         self._action_pub.publish(out)
 
     # --------------------------------------------------------- helpers

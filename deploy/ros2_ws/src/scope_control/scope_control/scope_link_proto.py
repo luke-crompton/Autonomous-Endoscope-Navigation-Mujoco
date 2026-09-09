@@ -21,10 +21,17 @@ must be dropped, not applied.
 MESSAGE TYPES
 -------------
 Host -> MCU:
-  0x01 SETPOINT  <ffI>        cmd_x_pair_mm, cmd_y_pair_mm, seq
-  0x02 CONFIG    <ffHHHH>     current_limit_ma, tension_limit_g,
-                              spike_debounce_ms, comms_timeout_ms,
-                              motor_hz, telem_hz
+  0x01 SETPOINT  <ffI>        cmd_x_n, cmd_y_n, seq
+                              NORMALISED command per pair, -1..+1 (= full bend).
+                              Firmware maps to encoder ticks with its own
+                              asymmetric per-direction MAX_PULL (from CONFIG).
+  0x02 CONFIG    <ffHHHH4Hf>  current_limit_ma, tension_limit_g,
+                              spike_debounce_ms, comms_timeout_ms, motor_hz, telem_hz,
+                              maxpull_x_pos, maxpull_x_neg, maxpull_z_pos, maxpull_z_neg
+                                  (encoder ticks, per axis per direction),
+                              maxpull_headroom  (0..1, fraction of the raw limit
+                                  the firmware will actually drive -- bend was
+                                  measured tip-free, friction reduces it)
   0x03 COMMAND   <B>          command (see scope_msgs/ScopeCommand)
   0x04 PING      <I>          token
 
@@ -37,7 +44,9 @@ MCU -> Host:
                               firmware de-scrambles the reversed HX711 wiring.
   0x82 LOG       <B> + utf8   level (0 debug,1 info,2 warn,3 error), message text
   0x84 PONG      <I>          token echo
-  0x85 HELLO     <BBf4h>      proto_version, num_servos, mm_per_tick, zero_ticks[4]
+  0x85 HELLO     <BB4H4h>     proto_version, num_servos,
+                              applied_maxpull[4] (x+,x-,z+,z- ticks, headroom already applied),
+                              zero_ticks[4]
                               sent once on boot
 """
 
@@ -45,7 +54,7 @@ from __future__ import annotations
 
 import struct
 
-PROTO_VERSION = 1
+PROTO_VERSION = 2
 DELIM = 0x00
 
 # ---- message types -----------------------------------------------------
@@ -60,13 +69,13 @@ T_PONG = 0x84
 T_HELLO = 0x85
 
 # ---- payload layouts --------------------------------------------------
-S_SETPOINT = struct.Struct("<ffI")
-S_CONFIG = struct.Struct("<ffHHHH")
+S_SETPOINT = struct.Struct("<ffI")           # cmd_x_n, cmd_y_n, seq
+S_CONFIG = struct.Struct("<ffHHHH4Hf")        # + maxpull x+,x-,z+,z- (ticks), headroom
 S_COMMAND = struct.Struct("<B")
 S_PING = struct.Struct("<I")
 S_TELEMETRY = struct.Struct("<IB4f4h4hI")
 S_PONG = struct.Struct("<I")
-S_HELLO = struct.Struct("<BBf4h")
+S_HELLO = struct.Struct("<BB4H4h")            # proto, nservos, applied_maxpull[4], zeros[4]
 
 # telemetry flag bits
 FLAG_TIP_CONTACT = 0x01

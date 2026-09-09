@@ -35,15 +35,9 @@
     pd_kp: 0.1803
     pd_kd: 0.0475
 
-    # ---- per-axis calibration ----------------------------------------
-    # Absolute cable pull (mm) at full commanded bend. The two axes differ
-    # (X pair drives 12 joints, Z pair 13) -- keep them separate.
-    #
-    # !!! THESE ARE SIM GEOMETRY. Measure on the real scope before any trial:
-    #     CURRENT_PLAN.md section 7 step 1b -- from the homed zero, drive each
-    #     pair to its mechanical bend limit, record the encoder delta -> mm.
-    max_pull_x_mm: 6.795
-    max_pull_y_mm: 7.361
+    # MAX_PULL is NOT here -- policy_node runs the shaper normalised. The real
+    # (asymmetric) encoder limits live in the scope_link section below and are
+    # pushed to the firmware.
 
     # ---- runtime -----------------------------------------------------
     control_rate_hz: 25.0       # nominal only; the loop is depth-frame-driven
@@ -68,3 +62,14 @@
     comms_timeout_ms: 120         # no setpoint for this long -> firmware SAFE_HOLD
     motor_hz: 200                 # servo goal-streaming rate inside the firmware
     telem_hz: 50                  # telemetry report rate
+
+    # Asymmetric per-axis-per-direction bend limits, encoder ticks.
+    # Measured 2026-09-09 with `bend <x|z>` (tip free, out of housing) --
+    # hardware/bringup/measured_constants.md. Firmware maps the normalised
+    # command -1..+1 to ticks with these. +x = pull servo 1, -x = servo 3;
+    # +z = pull servo 2, -z = servo 4.
+    maxpull_x_pos_ticks: 724      # 63.63 deg
+    maxpull_x_neg_ticks: 681      # 59.85 deg
+    maxpull_z_pos_ticks: 840      # 73.83 deg
+    maxpull_z_neg_ticks: 603      # 53.00 deg
+    maxpull_headroom: 0.9         # drive only this fraction (friction in the housing/colon)

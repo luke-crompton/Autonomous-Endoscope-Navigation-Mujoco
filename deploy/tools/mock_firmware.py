@@ -45,7 +45,6 @@ def main():
     ap.add_argument("--port", required=True, help="serial port to open (the firmware end)")
     ap.add_argument("--baud", type=int, default=921600)
     ap.add_argument("--telem-hz", type=float, default=50.0)
-    ap.add_argument("--mm-per-tick", type=float, default=0.02)
     ap.add_argument("--tip-contact", action="store_true")
     ap.add_argument("--spike-after", type=float, default=0.0,
                     help=">0: report a current spike -> SAFE_HOLD after this many seconds")
@@ -57,7 +56,11 @@ def main():
     print(f"[mock_fw] open {args.port} @ {args.baud}")
 
     reader = p.FrameReader()
-    ser.write(p.pack_frame(p.T_HELLO, p.S_HELLO.pack(p.PROTO_VERSION, 4, args.mm_per_tick,
+
+    # applied per-direction tick limits (x+, x-, z+, z-); updated by CONFIG.
+    # defaults ~= measured bend values x 0.9 headroom
+    maxpull = [652, 613, 756, 543]
+    ser.write(p.pack_frame(p.T_HELLO, p.S_HELLO.pack(p.PROTO_VERSION, 4, *maxpull,
                                                      2048, 2048, 2048, 2048)))
 
     enabled = False
@@ -94,7 +97,10 @@ def main():
                         print(f"[mock_fw] command {c} -> enabled={enabled} safety={safety}")
                     elif mtype == p.T_CONFIG:
                         vals = p.S_CONFIG.unpack(payload)
-                        print(f"[mock_fw] CONFIG {vals}")
+                        # vals[6:10] = raw maxpull x+,x-,z+,z- ; vals[10] = headroom
+                        hr = vals[10]
+                        maxpull[:] = [int(round(v * hr)) for v in vals[6:10]]
+                        print(f"[mock_fw] CONFIG {vals} -> applied maxpull {maxpull}")
                     elif mtype == p.T_PING:
                         ser.write(p.pack_frame(p.T_PONG, payload))
 
@@ -110,19 +116,22 @@ def main():
 
             if now >= next_telem:
                 next_telem += telem_period
-                dx = int(round(cmd_x / args.mm_per_tick)) if enabled and safety == 0 else 0
-                dy = int(round(cmd_y / args.mm_per_tick)) if enabled and safety == 0 else 0
+                # normalised command -> ticks, asymmetric per direction
+                live = enabled and safety == 0
+                dx = int(round(cmd_x * (maxpull[0] if cmd_x >= 0 else maxpull[1]))) if live else 0
+                dy = int(round(cmd_y * (maxpull[2] if cmd_y >= 0 else maxpull[3]))) if live else 0
                 flags = 0
                 if args.tip_contact and safety != 3:
                     flags |= p.FLAG_TIP_CONTACT
                 flags |= (safety & p.FLAG_SAFETY_MASK) << p.FLAG_SAFETY_SHIFT
                 if enabled:
                     flags |= p.FLAG_ENABLED
+                gx, gy = abs(cmd_x) * 120.0, abs(cmd_y) * 120.0   # mock tension, ~g
                 payload = p.S_TELEMETRY.pack(
                     int(last_seq) & 0xFFFFFFFF, flags,
-                    abs(cmd_x) * 8.0, abs(cmd_y) * 8.0, abs(cmd_x) * 8.0, abs(cmd_y) * 8.0,
+                    gx, gy, gx, gy,
                     2048 + dx, 2048 + dy, 2048 - dx, 2048 - dy,
-                    abs(dx) * 3, abs(dy) * 3, abs(dx) * 3, abs(dy) * 3,
+                    abs(dx) // 4, abs(dy) // 4, abs(dx) // 4, abs(dy) // 4,
                     int(el * 1000) & 0xFFFFFFFF,
                 )
                 ser.write(p.pack_frame(p.T_TELEMETRY, payload))

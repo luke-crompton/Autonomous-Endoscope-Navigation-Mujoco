@@ -22,10 +22,13 @@ def pd_shaper_step(cmd: float, prev_cmd: float, target: float,
                    kp: float, kd: float, limit: float) -> tuple[float, float]:
     """One update. Returns (new_cmd, new_prev_cmd).
 
-    `cmd`      : current shaper output (mm)
-    `prev_cmd` : shaper output one step ago (mm) -- for the derivative term
-    `target`   : action * max_pull for this axis (mm)
-    `limit`    : max_pull for this axis (mm); output is clipped to +/- this
+    `cmd`      : current shaper output
+    `prev_cmd` : shaper output one step ago -- for the derivative term
+    `target`   : action * limit for this axis
+    `limit`    : output is clipped to +/- this. policy_node runs the shaper
+                 normalised (limit = 1.0); the sim runs it with limit = MAX_PULL.
+                 The two are identical up to the MAX_PULL scale, which cancels
+                 out of the observation.
     """
     vel = cmd - prev_cmd
     new_cmd = cmd + kp * (target - cmd) - kd * vel

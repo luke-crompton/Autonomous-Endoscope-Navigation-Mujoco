@@ -22,8 +22,9 @@ def test_cobs_roundtrip_edge_cases():
 
 def test_frame_roundtrip_all_types():
     cases = [
-        (p.T_SETPOINT, p.S_SETPOINT.pack(3.14, -2.71, 12345)),
-        (p.T_CONFIG, p.S_CONFIG.pack(800.0, 250.0, 20, 120, 200, 50)),
+        (p.T_SETPOINT, p.S_SETPOINT.pack(0.42, -0.71, 12345)),
+        (p.T_CONFIG, p.S_CONFIG.pack(800.0, 250.0, 20, 120, 200, 50,
+                                     724, 681, 840, 603, 0.9)),
         (p.T_COMMAND, p.S_COMMAND.pack(3)),
         (p.T_PING, p.S_PING.pack(0xDEADBEEF)),
         (p.T_TELEMETRY, p.S_TELEMETRY.pack(
@@ -32,7 +33,8 @@ def test_frame_roundtrip_all_types():
             2048, 2050, 2046, 2049,
             10, 20, 15, 12,
             999999)),
-        (p.T_HELLO, p.S_HELLO.pack(p.PROTO_VERSION, 4, 0.0195, 2048, 2048, 2048, 2048)),
+        (p.T_HELLO, p.S_HELLO.pack(p.PROTO_VERSION, 4, 652, 613, 756, 543,
+                                   2048, 2048, 2048, 2048)),
     ]
     for mtype, payload in cases:
         frame = p.pack_frame(mtype, payload)

@@ -58,13 +58,15 @@ class MockScopeLink(Node):
         super().__init__("mock_scope_link")
 
         self.declare_parameter("telemetry_rate_hz", 50.0)
-        self.declare_parameter("mm_per_tick", 0.02)        # mock drum: 0.02 mm/tick
+        # mock per-direction tick limits (x+, x-, z+, z-), like the firmware's
+        # applied MAX_PULL -- so servo_pos_ticks move asymmetrically
+        self.declare_parameter("mock_maxpull_ticks", [652, 613, 756, 543])
         self.declare_parameter("tip_contact", False)        # report tip in contact
         self.declare_parameter("trip_estop_at_s", 0.0)      # >0 -> assert e-stop after this long
         self.declare_parameter("action_timeout_s", 0.5)     # no action for this long -> SAFETY_HOLD
 
         gp = self.get_parameter
-        self._mm_per_tick = float(gp("mm_per_tick").value)
+        self._maxpull = [int(x) for x in gp("mock_maxpull_ticks").value]
         self._tip_contact = bool(gp("tip_contact").value)
         self._trip_at = float(gp("trip_estop_at_s").value)
         self._action_timeout = float(gp("action_timeout_s").value)
@@ -87,7 +89,7 @@ class MockScopeLink(Node):
         self._start = self.get_clock().now()
 
         self.get_logger().info(
-            f"mock_scope_link up: telemetry {rate:.0f} Hz, mm_per_tick={self._mm_per_tick}, "
+            f"mock_scope_link up: telemetry {rate:.0f} Hz, maxpull_ticks={self._maxpull}, "
             f"tip_contact={self._tip_contact}, trip_estop_at_s={self._trip_at}"
         )
 
@@ -122,19 +124,20 @@ class MockScopeLink(Node):
         elif (now - self._last_action_stamp).nanoseconds * 1e-9 > self._action_timeout:
             safety = ScopeTelemetry.SAFETY_HOLD
 
-        cx_mm = self._last_action.cmd_x_pair_mm if self._last_action else 0.0
-        cy_mm = self._last_action.cmd_y_pair_mm if self._last_action else 0.0
+        cx_n = self._last_action.cmd_x_n if self._last_action else 0.0
+        cy_n = self._last_action.cmd_y_n if self._last_action else 0.0
         seq_echo = self._last_action.seq if self._last_action else 0
 
-        dx = int(round(cx_mm / self._mm_per_tick)) if self._mm_per_tick else 0
-        dy = int(round(cy_mm / self._mm_per_tick)) if self._mm_per_tick else 0
+        live = safety == ScopeTelemetry.SAFETY_OK
+        dx = int(round(cx_n * (self._maxpull[0] if cx_n >= 0 else self._maxpull[1]))) if live else 0
+        dy = int(round(cy_n * (self._maxpull[2] if cy_n >= 0 else self._maxpull[3]))) if live else 0
 
         msg = ScopeTelemetry()
         msg.header.stamp = now.to_msg()
         msg.header.frame_id = "scope_base"
         msg.seq_echo = int(seq_echo)
         msg.tip_contact = self._tip_contact and not self._estopped
-        # channel i -> servo (i+1). Pairs {1,3}=X, {2,4}=Z (flagged assumption).
+        # Pairs {1,3}=X, {2,4}=Z (flagged assumption).
         # One cable of each pair pulls (+delta), the other pays out (-delta).
         msg.servo_pos_ticks = [
             _ZERO_TICK + dx,   # servo 1  (X pair)
@@ -143,16 +146,16 @@ class MockScopeLink(Node):
             _ZERO_TICK - dy,   # servo 4  (Z pair, antagonist)
         ]
         # rough "tension proportional to pull" so the numbers move; not physical
-        msg.tension_g = [abs(cx_mm) * 8.0, abs(cy_mm) * 8.0,
-                         abs(cx_mm) * 8.0, abs(cy_mm) * 8.0]
-        msg.servo_current_ma = [abs(dx) * 2, abs(dy) * 2, abs(dx) * 2, abs(dy) * 2]
+        msg.tension_g = [abs(cx_n) * 120.0, abs(cy_n) * 120.0,
+                         abs(cx_n) * 120.0, abs(cy_n) * 120.0]
+        msg.servo_current_ma = [abs(dx) // 4, abs(dy) // 4, abs(dx) // 4, abs(dy) // 4]
         msg.safety_state = safety
         self._tele_pub.publish(msg)
 
     def _log_stats(self):
         if self._last_action is not None:
-            last = (f"last=({self._last_action.cmd_x_pair_mm:.3f}, "
-                    f"{self._last_action.cmd_y_pair_mm:.3f}) mm")
+            last = (f"last=({self._last_action.cmd_x_n:.3f}, "
+                    f"{self._last_action.cmd_y_n:.3f})")
         else:
             last = "(no action yet)"
         self.get_logger().info(f"actions rx last 2s: {self._n_actions}  {last}")
