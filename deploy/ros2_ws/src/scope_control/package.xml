@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>scope_control</name>
+  <version>0.1.0</version>
+  <description>
+    Deployment control loop for the autonomous-endoscope rig: the ROS 2 graph
+    that turns DA3 depth frames into tendon setpoints for the ESP32-S3.
+    Nodes: depth_bridge, policy_node, scope_link, mock_scope_link, estop.
+    Only policy_node is implemented so far.
+  </description>
+  <maintainer email="lukecromptonn16@gmail.com">Luke Crompton</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>scope_msgs</depend>
+  <exec_depend>python3-serial</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <exec_depend>ros2launch</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

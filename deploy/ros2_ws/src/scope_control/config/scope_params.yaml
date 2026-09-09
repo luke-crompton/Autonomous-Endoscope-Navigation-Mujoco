@@ -1,0 +1,70 @@
+# Parameters for the deployment control loop.
+#
+# Load with:  ros2 run scope_control policy_node --ros-args --params-file <this>
+# or via the launch file (once it exists). `/**` applies to the node whatever
+# namespace it is pushed into (the launch file puts it under /scope).
+
+/**:
+  ros__parameters:
+
+    # ---- trained-checkpoint contract -------------------------------------
+    experiment: "v8_p1_v1"
+
+    # Directory containing sf_encoder.py (the custom encoder the checkpoint was
+    # trained with). On the WSL mirror:
+    nav_code_dir: "/home/lukec/mujoco_v3/navigation/v8_p1"
+
+    # Point at EITHER a checkpoint_p0 folder / a specific best_*.pth
+    # (checkpoint_dir), OR a directory that contains runs_sf/ (checkpoint_root).
+    # checkpoint_dir wins if both are set.
+    checkpoint_dir: ""
+    checkpoint_root: "/home/lukec/mujoco_v3/navigation/v8_p1"
+
+    device: "cpu"           # the net is tiny; CPU is deliberate (see policy_runner.py)
+    mock_policy: false       # true -> emit zero actions, skip torch/SF (bench bring-up)
+
+    # ---- observation geometry (MUST match the trained env) --------------
+    depth_height: 54
+    depth_width: 96
+    state_dim: 6
+
+    # ---- PD command shaper --------------------------------------------
+    # Fitted at 25 Hz by navigation/v9/diagnostics/pd_rate_rescale.py.
+    # A x4 arithmetic rescale is UNSTABLE (|z| = 1.337). Do not touch without
+    # re-fitting against the wall-clock step response.
+    pd_kp: 0.1803
+    pd_kd: 0.0475
+
+    # ---- per-axis calibration ----------------------------------------
+    # Absolute cable pull (mm) at full commanded bend. The two axes differ
+    # (X pair drives 12 joints, Z pair 13) -- keep them separate.
+    #
+    # !!! THESE ARE SIM GEOMETRY. Measure on the real scope before any trial:
+    #     CURRENT_PLAN.md section 7 step 1b -- from the homed zero, drive each
+    #     pair to its mechanical bend limit, record the encoder delta -> mm.
+    max_pull_x_mm: 6.795
+    max_pull_y_mm: 7.361
+
+    # ---- runtime -----------------------------------------------------
+    control_rate_hz: 25.0       # nominal only; the loop is depth-frame-driven
+    tip_contact_default: false   # value used until the first telemetry message
+    start_running: false         # false -> wait for a RUN/RESET on /scope/run_state
+
+    # ================================================================
+    # scope_link (serial bridge to the ESP32-S3). Unknown-to-a-node keys
+    # in a '/**' block are ignored, so policy_node ignores these and
+    # scope_link ignores the policy keys above.
+    # ================================================================
+    port: "/dev/ttyUSB0"         # CP2102 "UART" jack, forwarded into WSL via usbipd
+    baud: 921600
+    reconnect_period_s: 1.0
+    enable_on_connect: false      # false -> firmware boots in SAFE_HOLD, send ScopeCommand ENABLE
+
+    # Safety governor limits, pushed to the firmware on every connect.
+    # These are the tunables -- raise/lower without reflashing.
+    current_limit_ma: 800.0       # per-servo present current; over this (debounced) -> SAFE_HOLD
+    tension_limit_g: 250.0        # per-cable tension; over this (debounced) -> SAFE_HOLD
+    spike_debounce_ms: 20         # how long a spike must persist before it trips
+    comms_timeout_ms: 120         # no setpoint for this long -> firmware SAFE_HOLD
+    motor_hz: 200                 # servo goal-streaming rate inside the firmware
+    telem_hz: 50                  # telemetry report rate
